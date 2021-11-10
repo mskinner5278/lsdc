@@ -4194,8 +4194,8 @@ class ControlMain(QtWidgets.QMainWindow):
     def timerHutchRefresh(self):
       if (daq_utils.beamline != "nyx"):
         try:
-          instead of the previous StringIO, use BytesIO:
-          https://stackoverflow.com/questions/41340296/how-can-pillow-open-uploaded-image-file-from-stringio-directly
+          #instead of the previous StringIO, use BytesIO:
+          #https://stackoverflow.com/questions/41340296/how-can-pillow-open-uploaded-image-file-from-stringio-directly
           file = BytesIO(urllib.request.urlopen(getBlConfig("hutchCornerCamURL")).read())
           img = Image.open(file)
           qimage = ImageQt.ImageQt(img)
