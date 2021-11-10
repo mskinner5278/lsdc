@@ -747,6 +747,9 @@ def checkC2C_X(x,fovx): # this is to make sure the user doesn't make too much of
   logger.info('checkC2C_X target: %s' % target)
   xlimLow = getPvDesc("robotXMountPos") + getPvDesc("robotXMountLowLim")
   xlimHi = getPvDesc("robotXMountPos") + getPvDesc("robotXMountHiLim")
+  if (daq_utils.beamline == "nyx"): # nyx - galil2 is giving microns and needs this conversion
+    xlimLow *= 1000
+    xlimHi *= 1000
   if (target<xlimLow or target>xlimHi):
     gui_message("Click to Center out of bounds on X move. Please mount next sample.")
     return 0
@@ -762,7 +765,8 @@ def center_on_click(x,y,fovx,fovy,source="screen",maglevel=0,jog=0): #maglevel=0
     if not (checkC2C_X(x,fovx)):
       return
   if (source == "screen"):
-    waitGovNoSleep()
+    if (daq_utils.beamline != "nyx"): # TODO: Implement this function so that we arent skipping it
+      waitGovNoSleep()
     setPvDesc("image_X_scalePix",daq_utils.screenPixX) #these are video dimensions in the gui
     setPvDesc("image_Y_scalePix",daq_utils.screenPixY)
     setPvDesc("image_X_centerPix",daq_utils.screenPixX/2)
