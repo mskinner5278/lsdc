@@ -4192,16 +4192,17 @@ class ControlMain(QtWidgets.QMainWindow):
 
 
     def timerHutchRefresh(self):
-      try:
-        # instead of the previous StringIO, use BytesIO:
-        # https://stackoverflow.com/questions/41340296/how-can-pillow-open-uploaded-image-file-from-stringio-directly
-        file = BytesIO(urllib.request.urlopen(getBlConfig("hutchCornerCamURL")).read())
-        img = Image.open(file)
-        qimage = ImageQt.ImageQt(img)
-        pixmap_orig = QtGui.QPixmap.fromImage(qimage)
-        self.pixmap_item_HutchCorner.setPixmap(pixmap_orig)        
-      except Exception as e:
-        logger.error('Exception during hutch corner cam handling: %s URL: %s' % (e, getBlConfig('hutchCornerCamURL')))
+      if (daq_utils.beamline != "nyx"):
+        try:
+          instead of the previous StringIO, use BytesIO:
+          https://stackoverflow.com/questions/41340296/how-can-pillow-open-uploaded-image-file-from-stringio-directly
+          file = BytesIO(urllib.request.urlopen(getBlConfig("hutchCornerCamURL")).read())
+          img = Image.open(file)
+          qimage = ImageQt.ImageQt(img)
+          pixmap_orig = QtGui.QPixmap.fromImage(qimage)
+          self.pixmap_item_HutchCorner.setPixmap(pixmap_orig)        
+        except Exception as e:
+          logger.error('Exception during hutch corner cam handling: %s URL: %s' % (e, getBlConfig('hutchCornerCamURL')))
       try:
         file = BytesIO(urllib.request.urlopen(getBlConfig("hutchTopCamURL")).read())
         img = Image.open(file)
