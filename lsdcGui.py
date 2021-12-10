@@ -1404,7 +1404,11 @@ class DataLocInfo(QtWidgets.QGroupBox):
         self.hBoxDPathParams1 = QtWidgets.QHBoxLayout()
         self.basePathLabel = QtWidgets.QLabel('Base Path:')
         self.base_path_ledit = QtWidgets.QLabel() #leave editable for now
-        self.base_path_ledit.setText(os.getcwd())
+        split = os.getcwd().split('/auto/nfs')
+        if len(split) > 1:
+          self.base_path_ledit.setText(split[1])
+        else:
+          self.base_path_ledit.setText(os.getcwd())
         self.base_path_ledit.setTextInteractionFlags(QtCore.Qt.TextSelectableByMouse)
         #self.base_path_ledit.textChanged[str].connect(self.basePathTextChanged)
         self.browseBasePathButton = QtWidgets.QPushButton("Browse...") 
@@ -1463,7 +1467,13 @@ class DataLocInfo(QtWidgets.QGroupBox):
       self.prefix_ledit.setText(s)
 
     def setBasePath_ledit(self,s):
-      self.base_path_ledit.setText(s)
+      print(f'setBasePath_ledit: {s}')
+      split = s.split('/auto/nfs')
+      print(f'{split}')
+      if len(split) > 1:
+         self.base_path_ledit.setText(split[1])
+      else:
+         self.base_path_ledit.setText(s)
 
     def setDataPath_ledit(self,s):
       self.dataPath_ledit.setText(s)
