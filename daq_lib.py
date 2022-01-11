@@ -495,7 +495,7 @@ def collectData(currentRequest):
     comm_s = "chmod 777 " + jpegDirectory
     os.system(comm_s)
   logger.debug('starting initial motions - transmission and detector distance')
-  daq_macros.setTrans(attenuation)
+  #daq_macros.setTrans(attenuation)
   beamline_lib.mvaDescriptor("detectorDist",colDist)  
   logger.debug('transmission and detector distance done')
   # now that the detector is in the correct position, get the beam center
