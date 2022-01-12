@@ -167,7 +167,10 @@ def process_input(command_string):
   except TypeError as e:
     logger.exception("Type error. Error: %s" % e)
   except AttributeError as e:
-    logger.error("Attribute Error: %s" % e)
+    logger.error("Unknown command in queue: %s Attribute Error: %s" % (command_string, e))
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    print("*** print_tb:")
+    traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
   except KeyboardInterrupt:
     abort_data_collection()
     logger.info("Interrupt caught by daq server\n")

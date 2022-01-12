@@ -501,6 +501,7 @@ def collectData(currentRequest):
   # now that the detector is in the correct position, get the beam center
   currentRequest['request_obj']['xbeam'] = getPvDesc('beamCenterX')
   currentRequest['request_obj']['ybeam'] = getPvDesc('beamCenterY')
+  logger.info(f'xbeam, ybeam: {currentRequest["request_obj"]["xbeam"]} {currentRequest["request_obj"]["ybeam"]}')
   db_lib.updateRequest(currentRequest)
   if (prot == "raster"):
     logger.info('entering raster')
