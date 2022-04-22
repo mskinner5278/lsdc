@@ -211,6 +211,11 @@ class StaffScreenDialog(QFrame):
         else:
           self.topViewCheckOnCheckBox.setChecked(False)            
         self.topViewCheckOnCheckBox.stateChanged.connect(self.topViewOnCheckCB)
+        # BeamCheck check box 
+        self.beamCheckOnCheckBox = QCheckBox("BeamCheck (On)")
+        self.beamCheckOnCheckBox.setChecked(True)
+        self.beamCheckOnCheckBox.stateChanged.connect(self.beamCheckOnCheckCB)
+
         self.queueCollectOnCheckBox = QCheckBox("Queue Collect")
         hBoxColParams1.addWidget(self.queueCollectOnCheckBox)
         if (getBlConfig("queueCollect") == 1):
@@ -432,6 +437,12 @@ class StaffScreenDialog(QFrame):
         setBlConfig("robot_online",1)
       else:
         setBlConfig("robot_online",0)
+
+    def beamCheckOnCheckCB(self,state):
+      if state == QtCore.Qt.Checked:
+         logger.debug("beamcheck on")
+      else:
+         logger.debug("beamcheck off")
 
     def topViewOnCheckCB(self,state):
       if state == QtCore.Qt.Checked:
