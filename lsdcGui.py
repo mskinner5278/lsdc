@@ -409,7 +409,7 @@ class StaffScreenDialog(QFrame):
       self.parent.send_to_server("clearMountedSample()")
 
     def recoverRobotCB(self):
-      self.parent.aux_send_to_server("recoverRobot()")
+      self.parent.send_to_server("recoverRobot()")
 
     def rebootEMBL_CB(self):
       self.parent.aux_send_to_server("rebootEMBL()")
