@@ -11,7 +11,7 @@ with open(f"{os.environ['CONFIGDIR']}/nsls2-kafka-config.yml") as f:
     kafka_config = yaml.safe_load(f)
 
 bootstrap_servers = ",".join(kafka_config["bootstrap_servers"])
-lsdc_producer_config = kafka_config["lsdc_producer_config"]
+lsdc_producer_config = kafka_config["runengine_producer_config"]
 
 conf = {'bootstrap.servers':bootstrap_servers,
         'ssl.ca.location': certifi.where()}
