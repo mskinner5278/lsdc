@@ -40,7 +40,7 @@ def govMsgGet(configStr = 'Robot'):
     blStr = blStrGet()
     if blStr == -1: return -1
 
-    sysStr = 'XF:17IDC-ES:' + blStr
+    sysStr = 'XF:17IDB-ES:' + blStr
     devStr = '{Gov:' + configStr + '}'
     stsStr = 'Sts:Msg-Sts'
     pvStr = sysStr + devStr + stsStr
@@ -67,7 +67,7 @@ def govStatusGet(stateStr, configStr = 'Robot'):
         logger.error('stateStr must be one of: M, SE, SA, DA, XF, BL, BS, AB, CB, DI]')
         return -1
     
-    sysStr = 'XF:17IDC-ES:' + blStr
+    sysStr = 'XF:17IDB-ES:' + blStr
     devStr = '{Gov:' + configStr + '-St:' + stateStr + '}'
     stsStr = 'Sts:Active-Sts'
     pvStr = sysStr + devStr + stsStr
@@ -94,7 +94,7 @@ def govStateSet(stateStr, configStr = 'Robot'):
         logger.error('stateStr must be one of: M, SE, SA, DA, XF, BL, BS, AB, CB, DI]')
         return -1
     
-    sysStr = 'XF:17IDC-ES:' + blStr
+    sysStr = 'XF:17IDB-ES:' + blStr
     devStr = '{Gov:' + configStr + '}'
     cmdStr = 'Cmd:Go-Cmd'
     pvStr = sysStr + devStr + cmdStr
@@ -116,10 +116,14 @@ from ophyd import PVPositioner, PVPositionerPC, Device, Component as Cpt, EpicsM
 ## DONE Redo ophyd object with proper PV
 class Annealer(Device):
     air = Cpt(EpicsSignal, '1}AnnealerAir-Sel')
-    inStatus = Cpt(EpicsSignalRO, '2}AnnealerIn-Sts') # status: 0 (Not In), 1 (In)
-    outStatus = Cpt(EpicsSignalRO, '2}AnnealerOut-Sts') # status: 0 (Not In), 1 (In)
+    inStatus = Cpt(EpicsSignalRO, '1}AnnealerAir-Sts') # status: 0 (Not In), 1 (In)
+    #outStatus = Cpt(EpicsSignalRO, '2}AnnealerOut-Sts') # status: 0 (Not In), 1 (In)
 
 ## FMX annealer aka cryo blocker
-annealer = Annealer('XF:17IDC-ES:FMX{Wago:', name='annealer',
+#annealer = Annealer('XF:17IDC-ES:FMX{Wago:', name='annealer',
+#                        read_attrs=[],
+#                        labels=['fmx'])
+
+annealer = Annealer('XF:17IDB-ES:AMX{Wago:', name='annealer',
                         read_attrs=[],
                         labels=['fmx'])
