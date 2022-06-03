@@ -11,6 +11,7 @@ import mysql.connector
 import logging
 logger = logging.getLogger(__name__)
 
+raise Exception('stop importing ispybLib to prevent calling functions - ispyb database is currently down')
 #12/19 - I'm leaving all commented lines alone on this. Karl Levik, DLS, is an immense help with this.
 
 conf_file = os.environ["CONFIGDIR"] + "ispybConfig.cfg"
@@ -19,6 +20,7 @@ visit = 'mx99999-1'
 #request_dicts = lsdb2.getColRequestsByTimeInterval('2018-02-14T00:00:00','2018-02-15T00:00:00')
 
 # Connect to ISPyB, get the relevant data area objects
+# sys.exit() 
 conn = ispyb.open(conf_file)
 core = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.CORE, conn)
 mxacquisition = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.MXACQUISITION, conn)
