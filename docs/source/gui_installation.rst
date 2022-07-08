@@ -15,10 +15,14 @@ Steps
 2. install custom gui conda environment
 ..
 ::
-    explorer.nsls2.bnl.gov/job_templates "Conda - Install custom code env (lsdc-gui)"
+    explorer.nsls2.bnl.gov/job_templates
+    "Conda - Install custom code env (lsdc-gui)"
 
 3. make sym-links for conda environment current version to latest
 ..
 :: 
-   ln -s /opt/conda/envs/conda/lsdc-gui-x.x.x /opt/conda/envs/conda/lsdc-gui-latest
-
+    ln -s /opt/conda/envs/conda/lsdc-gui-x.x.x /opt/conda/envs/conda/lsdc-gui-latest
+4. install albula
+..
+::
+    dectris.com download 
