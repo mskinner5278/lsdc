@@ -230,6 +230,7 @@ class StaffScreenDialog(QFrame):
         if (getBlConfig("queueCollect") == 1):
           self.queueCollectOnCheckBox.setChecked(True)
           self.gripperUnmountColdCheckBox.setEnabled(True)
+          self.gripperUnmountColdCheckBox.setChecked(False)
         else:
           self.queueCollectOnCheckBox.setChecked(False)            
           self.gripperUnmountColdCheckBox.setEnabled(False)
@@ -495,8 +496,11 @@ class StaffScreenDialog(QFrame):
     def queueCollectOnCheckCB(self,state):
       if state == QtCore.Qt.Checked:
         setBlConfig("queueCollect",1)
+        self.gripperUnmountColdCheckBox.setEnabled(True)
       else:
         setBlConfig("queueCollect",0)
+        self.gripperUnmountColdCheckBox.setEnabled(False)
+        self.gripperUnmountColdCheckBox.setChecked(False)
 
     def enableMountCheckCB(self,state):
       if state == QtCore.Qt.Checked:
@@ -4865,9 +4869,8 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def unmountSampleCB(self):
       logger.info("unmount sample")
-      self.eraseCB()
       if self.gripperUnmountColdCheckBox.isChecked():
-        self.send_to_server("")
+        self.send_to_server("unmountCold()")
       else:
         self.send_to_server("unmountSample()")
 
