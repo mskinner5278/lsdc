@@ -4869,10 +4869,7 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def unmountSampleCB(self):
       logger.info("unmount sample")
-      if self.gripperUnmountColdCheckBox.isChecked():
-        self.send_to_server("unmountCold()")
-      else:
-        self.send_to_server("unmountSample()")
+      self.send_to_server("unmountSample()")
 
 
     def refreshCollectionParams(self,selectedSampleRequest):
