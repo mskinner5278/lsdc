@@ -220,12 +220,20 @@ class StaffScreenDialog(QFrame):
           self.beamCheckOnCheckBox.setChecked(False)
         self.beamCheckOnCheckBox.stateChanged.connect(self.beamCheckOnCheckCB)
 
+        self.gripperUnmountColdCheckBox = QCheckBox("Unmount Cold")
+        self.gripperUnmountColdCheckBox.setChecked(False)
+        self.gripperUnmountColdCheckBox.setEnabled(False)
+        self.gipperUnmountColdCheckBox.stateChanged.connect(self.unmountColdCheckCB)
+
         self.queueCollectOnCheckBox = QCheckBox("Queue Collect")
         hBoxColParams1.addWidget(self.queueCollectOnCheckBox)
         if (getBlConfig("queueCollect") == 1):
           self.queueCollectOnCheckBox.setChecked(True)
+          self.gripperUnmountCold.setEnabled(True)
         else:
           self.queueCollectOnCheckBox.setChecked(False)            
+          self.gripperUnmountCold.setEnabled(False)
+          self.gripperUnmountCold.setChecked(False)
         self.queueCollectOnCheckBox.stateChanged.connect(self.queueCollectOnCheckCB)
         self.vertRasterOnCheckBox = QCheckBox("Vert. Raster")
         hBoxColParams1.addWidget(self.vertRasterOnCheckBox)        
@@ -450,6 +458,14 @@ class StaffScreenDialog(QFrame):
       else:
          setBlConfig(BEAM_CHECK,0)
          logger.debug(f"{BEAM_CHECK} off")
+
+    def unmountColdCheckCB(self,state):
+      if state == QtCore.Qt.Checked:
+        logger.info("unmountColdCheckCB On")
+        #setBlConfig(UNMOUNT_COLD,1)
+      else:
+        logger.info("unmountColdCheckCB Off")
+        #setBlConfig(UNMOUNT_COLD,0)
 
     def topViewOnCheckCB(self,state):
       if state == QtCore.Qt.Checked:
@@ -4848,8 +4864,11 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def unmountSampleCB(self):
       logger.info("unmount sample")
-      self.eraseCB()      
-      self.send_to_server("unmountSample()")
+      self.eraseCB()
+      if self.gripperUnmountColdCheckBox.isChecked():
+        self.send_to_server("")
+      else:
+        self.send_to_server("unmountSample()")
 
 
     def refreshCollectionParams(self,selectedSampleRequest):
