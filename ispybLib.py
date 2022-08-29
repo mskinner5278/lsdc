@@ -11,7 +11,6 @@ import mysql.connector
 import logging
 logger = logging.getLogger(__name__)
 
-raise Exception('stop importing ispybLib to prevent calling functions - ispyb database is currently down')
 #12/19 - I'm leaving all commented lines alone on this. Karl Levik, DLS, is an immense help with this.
 
 conf_file = os.environ["CONFIGDIR"] + "ispybConfig.cfg"
@@ -20,13 +19,12 @@ visit = 'mx99999-1'
 #request_dicts = lsdb2.getColRequestsByTimeInterval('2018-02-14T00:00:00','2018-02-15T00:00:00')
 
 # Connect to ISPyB, get the relevant data area objects
-# sys.exit() 
 conn = ispyb.open(conf_file)
 core = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.CORE, conn)
 mxacquisition = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.MXACQUISITION, conn)
 mxprocessing = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.MXPROCESSING, conn)
 mxscreening = ispyb.factory.create_data_area(ispyb.factory.DataAreaType.MXSCREENING, conn)
-cnx = mysql.connector.connect(user='ispyb_api', password=os.environ['ISPYB_PASSWORD'],host='ispyb-db-dev.cs.nsls2.local',database='ispyb')
+cnx = mysql.connector.connect(user='ispyb', password="psyb2&abby",host='ispyb-db.nsls2.bnl.gov',database='ispyb')
 cursor = cnx.cursor()
 beamline = os.environ["BEAMLINE_ID"]
 detSeqNumPVNAME = db_lib.getBeamlineConfigParam(beamline,"detSeqNumPVNAME") #careful - this pvname is stored in DB and in detControl.
