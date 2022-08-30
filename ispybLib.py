@@ -198,7 +198,8 @@ def insertResult(result,resultType,request,visitName,dc_id=None,xmlFileName=None
    sessionid = core.retrieve_visit_id(visitName)
  except ISPyBNoResultException as e:
    logger.error(f"insert result - caught ISPyBNoResultException: {e}. make sure visit name is in the format mx999999-1234. NOT HAVING MX IN FRONT IS A SIGN OF PROBLEMS - try newVisit() in that case.\nActual visitName: {visitName}")
-   propNum = visitName.split('-')[0]
+   propName = visitName.split('-')[0]
+   propNum = propName[2:]  # TODO very hardcoded for "mx999999" - consider how to fix long-term
    sessionid = createVisit(propNum)
  request_type = request['request_type']
  if request_type in('standard', 'vector') :
