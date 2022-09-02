@@ -36,8 +36,6 @@ sampZadjust = 0
 global retryMountCount
 retryMountCount = 0
 
-dewarRefillStop = 0
-_dewarRefillThread = None
 
 def finish():
   if (getBlConfig('robot_online')):  
@@ -155,17 +153,23 @@ def dryGripper():
     setPvDesc("warmupThreshold",saveThreshold)          
     
 def DewarRefill(hours):
-  _dewarRefillThread = Thread(target=DewarRefillTask, args=(hours,0))
+  global _dewarRefillThread
+  seconds = int((hours * 60 * 60))
+  _dewarRefillThread = Thread(target=_dewarRefillTask, args=(seconds,0))
   _dewarRefillThread.start()
 
-def DewarRefillTask(hours):
+def _dewarRefillTask(seconds, flag):
+  global dewarRefillStop
+  DewarAutoFillOff()
+  DewarHeaterOn()
+  dewarRefillStop = 0
   start_time = time.time()
-  goal_time = time.time() + (hours[0]*60*60)
+  goal_time = time.time() + (seconds)
   while not dewarRefillStop:
     if time.time() < goal_time:
-      time_remaining = (goal_time - time.time()) / 60
-      logger.info(f"DewarRefillTask waiting... {time_remaining}")
-      time.sleep(10)
+      time_remaining = round(((goal_time - time.time()) / 60), 1)
+      logger.info(f"DewarRefillTask: Time remaining until auto fill on... {time_remaining} minutes")
+      time.sleep(60)
     else:
       logger.info("Dewar refill task running.")
       DewarAutoFillOn()
@@ -175,9 +179,9 @@ def DewarRefillTask(hours):
   dewarRefillStop = 0
 
 def DewarRefillCancel():
-  if _dewarRefillThread is not None:
-    logger.info("DewarRefillTask cancelling...")
-    dewarRefillStop = 1
+  global dewarRefillStop
+  logger.info("DewarRefillTask cancelling...")
+  dewarRefillStop = 1
 
 def DewarAutoFillOn():
   RobotControlLib.runCmd("turnOnAutoFill")
