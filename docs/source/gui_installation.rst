@@ -9,6 +9,8 @@ Steps
 1. make sym-links for startup scripts
 ..
 ::
+    which lsdcGui
+    # if this is a valid path stop here
     cd /usr/local/bin
     dzdo ln -s /nsls2/software/mx/daq/lsdc_nyx/bin/lsdcGui_nyx lsdcGui
 
@@ -17,6 +19,15 @@ Steps
 ::
     explorer.nsls2.bnl.gov/job_templates
     "Conda - Install custom conda env (lsdc-gui)"
+    "Actions" column > press Run
+    on "Job invocation" page > enter host name into "Search Query" 
+                             > "Resolves to" row > Click Refresh
+                             # "Resolves to" row should now say "1 hosts"
+                             > press Submit
+    on "Overview" page > should say "0% pending"
+                       > wait for "100% success"
+                       # if it fails, click on the hosts name at the bottom of the page
+                       # page will show additional information for staff
 
 3. make sym-links for conda environment current version to latest
 ..
