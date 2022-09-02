@@ -1,8 +1,6 @@
 =================================
 LSDC Gui Installation
 =================================
-2022-07-08
-=================================
 Steps
 -----
 
@@ -11,6 +9,7 @@ Steps
 ::
     which lsdcGui
     # if this is a valid path stop here
+    
     cd /usr/local/bin
     dzdo ln -s /nsls2/software/mx/daq/lsdc_nyx/bin/lsdcGui_nyx lsdcGui
 
@@ -36,4 +35,17 @@ Steps
 4. install albula
 ..
 ::
-    dectris.com download 
+    which albula
+    # if it returns /usr/bin/albula this step has been completed
+    
+    explorer.nsls2.bnl.gov/job_templates
+    "mx_software"
+    "Actions" column > press Run
+    on "Job invocation" page > enter host name into "Search Query" 
+                             > "Resolves to" row > Click Refresh
+                             # "Resolves to" row should now say "1 hosts"
+                             > press Submit
+    on "Overview" page > should say "0% pending"
+                       > wait for "100% success"
+                       # if it fails, click on the hosts name at the bottom of the page
+                       # page will show additional information for staff
