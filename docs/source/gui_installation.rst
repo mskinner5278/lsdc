@@ -10,7 +10,7 @@ Steps
 ..
 ::
     cd /usr/local/bin
-    ln -s /nsls2/software/mx/daq/lsdc_nyx/bin/lsdcGui_nyx lsdcGui
+    dzdo ln -s /nsls2/software/mx/daq/lsdc_nyx/bin/lsdcGui_nyx lsdcGui
 
 2. install custom gui conda environment
 ..
