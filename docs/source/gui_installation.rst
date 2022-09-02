@@ -16,7 +16,7 @@ Steps
 ..
 ::
     explorer.nsls2.bnl.gov/job_templates
-    "Conda - Install custom code env (lsdc-gui)"
+    "Conda - Install custom conda env (lsdc-gui)"
 
 3. make sym-links for conda environment current version to latest
 ..
