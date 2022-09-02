@@ -32,7 +32,7 @@ Steps
 3. make sym-links for conda environment current version to latest
 ..
 :: 
-    dzdo ln -s /opt/conda/envs/conda/lsdc-gui-x.x.x /opt/conda/envs/conda/lsdc-gui-latest
+    dzdo ln -s /opt/conda_envs/lsdc-gui-year-x.y /opt/conda_envs/lsdc-gui-year-x-latest
 4. install albula
 ..
 ::
