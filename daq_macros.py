@@ -2537,7 +2537,7 @@ def defineRectRaster(currentRequest,raster_w_s,raster_h_s,stepsizeMicrons_s,xoff
 def collectSpec(filename,gotoSA=True):
   """collectSpec(filenamePrefix) : collect a spectrum, save to file"""  
   gov_lib.setGovRobot(gov_robot, 'XF')
-  daq_lib.open_shutter()
+  shutter.open_shutter()
   setPvDesc("mercuryEraseStart",1)
   while (1):
     if (getPvDesc("mercuryReadStat") == 0):
@@ -2556,7 +2556,7 @@ def collectSpec(filename,gotoSA=True):
     else:
       specFile.write("," + str(specArray[i]))
   specFile.close()
-  daq_lib.close_shutter()
+  shutter.close_shutter()
   if (gotoSA):
     gov_lib.setGovRobot(gov_robot, 'SA')
 
@@ -2583,9 +2583,9 @@ def eScan(energyScanRequest):
   if not gov_status.success:
     daq_lib.gui_message('Governor did not reach XF state')
     return
-  daq_lib.open_shutter()
+  shutter.open_shutter()
   scanID = RE(bp.rel_scan([mercury],vdcm.e,left,right,steps),[LivePlot("mercury_mca_rois_roi0_count")])
-  daq_lib.close_shutter()
+  shutter.close_shutter()
   if (lastOnSample()):  
     gov_lib.setGovRobot(gov_robot, 'SA')
   scanData = db[scanID[0]]

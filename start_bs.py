@@ -155,6 +155,8 @@ elif beamline == "fmx":
     back_light_range = (0, 100)
 
 elif beamline=="nyx":
+    from shutter_lib import ShutterDevice
+    shutter = ShutterDevice('XF:19IDC-ES', name='shutter')
     mercury = ABBIXMercury('XF:17IDC-ES:FMX{Det:Mer}', name='mercury')
     mercury.read_attrs = ['mca.spectrum', 'mca.preset_live_time', 'mca.rois.roi0.count',
                                             'mca.rois.roi1.count', 'mca.rois.roi2.count', 'mca.rois.roi3.count']
