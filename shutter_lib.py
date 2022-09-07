@@ -7,19 +7,25 @@ class ShutterDevice(Device):
   close_pos = Cpt(EpicsSignalRO, '{Gon:1-Sht}Pos:Cls-I') #XF:19IDC-ES{Gon:1-Sht}Pos:Cls-I
   command = Cpt(EpicsSignal, '{Galil:2}SHUT_CMD') #XF:19IDC-ES{Galil:2}SHUT_CMD
 
-  def shutter_status():
-    return status.read()['value']
+  def get_status(self):
+    return self.status.read()['shutter_status']['value']
 
-  def open_shutter():
+  def open(self):
     #VEnum[Open(1)] open_pos for NYX
-    command.set(open_pos.read()['value']).wait()
+    self.command.set(self.open_pos.read()['shutter_open_pos']['value']).wait()
 
-  def close_shutter():
+  def close(self):
     #VEnum[Close(0)] close_pos for NYX
-    command.set(close_pos.read()['value']).wait()
+    self.command.set(self.close_pos.read()['shutter_close_pos']['value']).wait()
 
-  def is_open():
-    return (status.read()==open_pos.read()) 
+  def get_close_pos(self):
+    return self.close_pos.read()['shutter_close_pos']['value']
 
-  def is_closed():
-    return (status.read()==close_pos.read())
+  def get_open_pos(self):
+    return self.open_pos.read()['shutter_open_pos']['value']
+
+  def is_open(self):
+    return (self.status.read()['shutter_status']['value']==self.open_pos.read()['shutter_open_pos']['value']) 
+
+  def is_closed(self):
+    return (self.status.read()['shutter_status']['value']==self.close_pos.read()['shutter_close_pos']['value']) 
