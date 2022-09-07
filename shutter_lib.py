@@ -17,3 +17,9 @@ class ShutterDevice(Device):
   def close_shutter():
     #VEnum[Close(0)] close_pos for NYX
     command.set(close_pos.read()['value']).wait()
+
+  def is_open():
+    return (status.read()==open_pos.read()) 
+
+  def is_closed():
+    return (status.read()==close_pos.read())
