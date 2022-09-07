@@ -97,6 +97,10 @@ def filter_camera_data(camera):
     camera.stats1.read_attrs = ['total', 'centroid']
     camera.stats5.read_attrs = ['total', 'centroid']
 
+if (beamline=="nyx"):
+    from shutter_lib import ShutterDevice
+    shutter = ShutterDevice('XF:19IDC-ES', name='shutter')
+
 if (beamline=="amx"):
     mercury = ABBIXMercury('XF:17IDB-ES:AMX{Det:Mer}', name='mercury')
     mercury.read_attrs = ['mca.spectrum', 'mca.preset_live_time', 'mca.rois.roi0.count',
