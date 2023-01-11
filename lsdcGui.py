@@ -765,7 +765,7 @@ class ScreenDefaultsDialog(QtWidgets.QDialog):
 
         hBoxColParams2 = QtWidgets.QHBoxLayout()
         colRangeLabel = QtWidgets.QLabel('Oscillation Width:')
-        colRangeLabel.setAlignment(QtCore.Qt.AlignCenter) 
+        colRangeLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.osc_range_ledit = QtWidgets.QLineEdit() # note, this is for rastering! same name used for data collections
         self.setGuiValues({'osc_range':getBlConfig("rasterDefaultWidth")})
         self.osc_range_ledit.returnPressed.connect(self.screenDefaultsOKCB)                        
@@ -1825,7 +1825,7 @@ class ControlMain(QtWidgets.QMainWindow):
         deQueueSelectedButton = QtWidgets.QPushButton("deQueue All Selected")        
         deQueueSelectedButton.clicked.connect(self.dewarTree.deQueueAllSelectedCB)
         runQueueButton = QtWidgets.QPushButton("Collect Queue")
-        runQueueButton.setStyleSheet("background-color: yellow")
+        runQueueButton.setStyleSheet("background-color: green")
         runQueueButton.clicked.connect(self.collectQueueCB)
         stopRunButton = QtWidgets.QPushButton("Stop Collection")
         stopRunButton.setStyleSheet("background-color: red")
@@ -1848,7 +1848,7 @@ class ControlMain(QtWidgets.QMainWindow):
         emptyQueueButton.clicked.connect(functools.partial(self.dewarTree.deleteSelectedCB,1))
         warmupButton = QtWidgets.QPushButton("Warmup Gripper")        
         warmupButton.clicked.connect(self.warmupGripperCB)
-        restartServerButton = QtWidgets.QPushButton("Restart Server")        
+        restartServerButton = QtWidgets.QPushButton("Restart Server")
         restartServerButton.clicked.connect(self.restartServerCB)
         self.openShutterButton = QtWidgets.QPushButton("Open Photon Shutter")        
         self.openShutterButton.clicked.connect(self.openPhotonShutterCB)
@@ -1870,7 +1870,7 @@ class ControlMain(QtWidgets.QMainWindow):
         vBoxTreeButtsLayoutRight.addWidget(self.closeShutterButton)
         vBoxTreeButtsLayoutRight.addWidget(deQueueSelectedButton)        
         vBoxTreeButtsLayoutRight.addWidget(emptyQueueButton)
-        vBoxTreeButtsLayoutRight.addWidget(restartServerButton)        
+        #vBoxTreeButtsLayoutRight.addWidget(restartServerButton)        
         hBoxTreeButtsLayout.addLayout(vBoxTreeButtsLayoutLeft)
         hBoxTreeButtsLayout.addLayout(vBoxTreeButtsLayoutRight)
         vBoxDFlayout.addLayout(hBoxTreeButtsLayout)
@@ -1893,12 +1893,14 @@ class ControlMain(QtWidgets.QMainWindow):
         colStartLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.osc_start_ledit = QtWidgets.QLineEdit()
         self.osc_start_ledit.setFixedWidth(60)
+        self.osc_start_ledit.setValidator(QDoubleValidator(self))
         self.colEndLabel = QtWidgets.QLabel('Oscillation Range:')
         self.colEndLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.colEndLabel.setFixedWidth(140)
         self.osc_end_ledit = QtWidgets.QLineEdit()
         self.setGuiValues({'osc_end':"180.0"})
         self.osc_end_ledit.setFixedWidth(60)
+        self.osc_end_ledit.setValidator(QDoubleValidator(self))
         self.osc_end_ledit.textChanged[str].connect(functools.partial(self.totalExpChanged,"oscEnd"))        
         hBoxColParams1.addWidget(colStartLabel)
         hBoxColParams1.addWidget(self.osc_start_ledit)
@@ -1910,6 +1912,7 @@ class ControlMain(QtWidgets.QMainWindow):
         colRangeLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.osc_range_ledit = QtWidgets.QLineEdit()
         self.osc_range_ledit.setFixedWidth(60)
+        self.osc_range_ledit.setValidator(QDoubleValidator(self))
         self.stillModeCheckBox = QCheckBox("Stills")
         self.stillModeCheckBox.setEnabled(False)
         if (self.stillModeStatePV.get()):
@@ -1982,6 +1985,7 @@ class ControlMain(QtWidgets.QMainWindow):
         transmisionSPLabel = QtWidgets.QLabel("SetPoint:")
 
         self.transmission_ledit = self.transmissionSetPoint.getEntry()
+        self.transmission_ledit.setValidator(QDoubleValidator(self))
         self.setGuiValues({'transmission':getBlConfig("stdTrans")})
         self.transmission_ledit.returnPressed.connect(self.setTransCB)        
         setTransButton = QtWidgets.QPushButton("Set Trans")
@@ -2002,6 +2006,7 @@ class ControlMain(QtWidgets.QMainWindow):
         energySPLabel = QtWidgets.QLabel("SetPoint:")
         self.energyMoveLedit = QtEpicsPVEntry(daq_utils.motor_dict["energy"] + ".VAL",self,75,2)
         self.energy_ledit = self.energyMoveLedit.getEntry()
+        self.energy_ledit.setValidator(QDoubleValidator(self))
         self.energy_ledit.returnPressed.connect(self.moveEnergyCB)        
         moveEnergyButton = QtWidgets.QPushButton("Move Energy")
         moveEnergyButton.clicked.connect(self.moveEnergyCB)        
@@ -2036,6 +2041,7 @@ class ControlMain(QtWidgets.QMainWindow):
         colResoLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.resolution_ledit = QtWidgets.QLineEdit()
         self.resolution_ledit.setFixedWidth(60)
+        self.resolution_ledit.setValidator(QDoubleValidator(self))
         self.resolution_ledit.textEdited[str].connect(self.resoTextChanged)
         detDistLabel = QtWidgets.QLabel('Detector Dist.')
         detDistLabel.setAlignment(QtCore.Qt.AlignCenter)         
@@ -2222,6 +2228,7 @@ class ControlMain(QtWidgets.QMainWindow):
         setVectorEndButton.clicked.connect(self.setVectorEndCB)
         vectorFPPLabel = QtWidgets.QLabel("Number of Wedges")
         self.vectorFPP_ledit = QtWidgets.QLineEdit("1")
+        self.vectorFPP_ledit.setValidator(QIntValidator(self))
         vecLenLabel = QtWidgets.QLabel("    Length(microns):")
         self.vecLenLabelOutput = QtWidgets.QLabel("---")
         vecSpeedLabel = QtWidgets.QLabel("    Speed(microns/s):")
@@ -2336,7 +2343,10 @@ class ControlMain(QtWidgets.QMainWindow):
         self.sceneHutchTop.addItem(self.pixmap_item_HutchTop)
 
         self.pixmap_item.mousePressEvent = self.pixelSelect
-        centerMarkBrush = QtGui.QBrush(QtCore.Qt.blue)                
+        if(daq_utils.defaultOverlayColor == 'GREEN'):
+          centerMarkBrush = QtGui.QBrush(QtCore.Qt.green)
+        else:
+          centerMarkBrush = QtGui.QBrush(QtCore.Qt.blue)
         centerMarkPen = QtGui.QPen(centerMarkBrush,2.0)
         self.centerMarker = QtWidgets.QGraphicsSimpleTextItem("+")
         self.centerMarker.setZValue(10.0)
@@ -2374,7 +2384,10 @@ class ControlMain(QtWidgets.QMainWindow):
         self.scene.addItem(self.beamSizeOverlay)
         self.beamSizeOverlay.setVisible(False)
         self.beamSizeOverlay.setRect(self.overlayPosOffsetX+self.centerMarker.x()-(self.beamSizeXPixels/2),self.overlayPosOffsetY+self.centerMarker.y()-(self.beamSizeYPixels/2),self.beamSizeXPixels,self.beamSizeYPixels)
-        scaleBrush = QtGui.QBrush(QtCore.Qt.blue)        
+        if(daq_utils.defaultOverlayColor == 'GREEN'):
+          scaleBrush = QtGui.QBrush(QtCore.Qt.green) 
+        else:
+          scaleBrush = QtGui.QBrush(QtCore.Qt.blue) 
         scalePen = QtGui.QPen(scaleBrush,2.0)
         scaleTextPen = QtGui.QPen(scaleBrush,1.0)
         self.imageScaleLineLen = 50
@@ -2696,6 +2709,7 @@ class ControlMain(QtWidgets.QMainWindow):
           self.dimpleCheckBox.setDisabled(True)
           self.centeringComboBox.setDisabled(True)
           self.beamsizeComboBox.setDisabled(True)
+          annealButton.setDisabled(True)
           centerLoopButton.setDisabled(True)
           clearGraphicsButton.setDisabled(True)
           saveCenteringButton.setDisabled(True) 
@@ -4341,8 +4355,13 @@ class ControlMain(QtWidgets.QMainWindow):
       try:
         # instead of the previous StringIO, use BytesIO:
         # https://stackoverflow.com/questions/41340296/how-can-pillow-open-uploaded-image-file-from-stringio-directly
-        file = BytesIO(urllib.request.urlopen(getBlConfig("hutchCornerCamURL")).read())
-        img = Image.open(file)
+        if daq_utils.beamline == 'nyx':
+            file = "/nsls2/software/mx/daq/lsdc_nyx/img-assets/19-ID_TopAlign.png"
+            img = Image.open(file)
+            img = img.resize((320,180))
+        else:
+            file = BytesIO(urllib.request.urlopen(getBlConfig("hutchCornerCamURL")).read())
+            img = Image.open(file)
         qimage = ImageQt.ImageQt(img)
         pixmap_orig = QtGui.QPixmap.fromImage(qimage)
         self.pixmap_item_HutchCorner.setPixmap(pixmap_orig)        
@@ -5336,7 +5355,10 @@ class ControlMain(QtWidgets.QMainWindow):
         # Create the menu item with the submenu, add the group 
         self.overlayMenu = settingsMenu.addMenu("Overlay Settings")
         self.overlayMenu.addActions(self.overlayColorActionGroup.actions())
-        self.BlueOverlayAction.setChecked(True)
+        if (daq_utils.defaultOverlayColor == 'GREEN'):
+            self.GreenOverlayAction.setChecked(True)
+        else:
+            self.BlueOverlayAction.setChecked(True)
         
         fileMenu.addAction(exitAction)
         self.setGeometry(300, 300, 1550, 1000) #width and height here. 
