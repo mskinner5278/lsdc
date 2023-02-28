@@ -3260,7 +3260,7 @@ def loop_center_xrec():
   pic_prefix = "findloop"
   output_file = 'xrec_result.txt'
   clean_up_files(pic_prefix, output_file)
-  zebraCamDaq(0,360,40,.4,pic_prefix,os.getcwd(),0)    
+#  zebraCamDaq(0,360,40,.4,pic_prefix,os.getcwd(),0)    
   comm_s = f'xrec {os.environ["CONFIGDIR"]}/xrec_360_40Fast.txt {output_file}'
   logger.info(comm_s)
   try:
