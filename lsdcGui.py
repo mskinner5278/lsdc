@@ -1926,6 +1926,8 @@ class ControlMain(QtWidgets.QMainWindow):
         self.closeShutterButton = QtWidgets.QPushButton("Close Photon Shutter")        
         self.closeShutterButton.clicked.connect(self.closePhotonShutterCB)
         self.closeShutterButton.setStyleSheet("background-color: red")
+        self.parkRobotButton = QtWidgets.QPushButton("Park Robot")
+        self.parkRobotButton.clicked.connect(self.parkRobotCB)
         hBoxTreeButtsLayout = QtWidgets.QHBoxLayout()
         vBoxTreeButtsLayoutLeft = QtWidgets.QVBoxLayout()
         vBoxTreeButtsLayoutRight = QtWidgets.QVBoxLayout()
@@ -1936,7 +1938,8 @@ class ControlMain(QtWidgets.QMainWindow):
         vBoxTreeButtsLayoutLeft.addWidget(self.popUserScreen)        
         vBoxTreeButtsLayoutLeft.addWidget(warmupButton)        
         vBoxTreeButtsLayoutRight.addWidget(self.closeShutterButton)
-        vBoxTreeButtsLayoutRight.addWidget(unmountSampleButton)        
+        vBoxTreeButtsLayoutRight.addWidget(self.parkRobotButton)
+        vBoxTreeButtsLayoutRight.addWidget(unmountSampleButton) 
         vBoxTreeButtsLayoutRight.addWidget(deQueueSelectedButton)        
         vBoxTreeButtsLayoutRight.addWidget(emptyQueueButton)
         #vBoxTreeButtsLayoutRight.addWidget(restartServerButton)        
@@ -4994,7 +4997,9 @@ class ControlMain(QtWidgets.QMainWindow):
       else:
         self.popupServerMessage("You don't have control")          
       
-            
+        
+    def parkRobotCB(self):
+        print("ParkGripper Test")
 
     def closePhotonShutterCB(self):
       self.photonShutterClose_pv.put(1)        
