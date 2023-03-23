@@ -20,6 +20,7 @@ if isinstance(robot, EMBLRobot):
 else:
     print("not importing RobotControlLib")
 
+import getpass
 
 import logging
 from logging import handlers
@@ -35,6 +36,13 @@ handler2.setFormatter(myformat)
 logger.addHandler(handler1)
 logger.addHandler(handler2)
 
+if not getpass.getuser().startswith("lsdc-"):
+    message = "LSDC server not being started by a LSDC service user account, aborting!"
+    print(message)
+    logger.error(message)
+    sys.exit(1)
+else:
+    print(f"continuing as we are using a service user: {getpass.getuser()}")
 sitefilename = ""
 global command_list,immediate_command_list,z
 command_list = []
