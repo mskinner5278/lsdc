@@ -4947,7 +4947,7 @@ class ControlMain(QtWidgets.QMainWindow):
       
         
     def parkRobotCB(self):
-        print("ParkGripper Test")
+        self.send_to_server("parkRobot()")
 
     def closePhotonShutterCB(self):
       self.photonShutterClose_pv.put(1)        
