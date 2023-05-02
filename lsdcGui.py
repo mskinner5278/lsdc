@@ -2296,6 +2296,7 @@ class ControlMain(QtWidgets.QMainWindow):
         self.vecLenLabelOutput = QtWidgets.QLabel("---")
         vecSpeedLabel = QtWidgets.QLabel("    Speed(microns/s):")
         self.vecSpeedLabelOutput = QtWidgets.QLabel("---")
+
         hBoxVectorLayout1.addWidget(setVectorStartButton)
         hBoxVectorLayout1.addWidget(setVectorEndButton)
         hBoxVectorLayout1.addWidget(vectorFPPLabel)
@@ -2317,11 +2318,8 @@ class ControlMain(QtWidgets.QMainWindow):
         #vBoxColParams1.addWidget(self.vectorParamsFrame)
         #vBoxColParams1.addWidget(self.characterizeParamsFrame)
         #vBoxColParams1.addWidget(self.processingOptionsFrame)
-        ###########################
-        # Area Under Construction #
-        ###########################
-        mikesGB = QtWidgets.QGroupBox()
-        mikesGB.setTitle("Acquisition")
+        acquisitionGB = QtWidgets.QGroupBox()
+        acquisitionGB.setTitle("Acquisition")
        
         paramSubspace = QGridLayout()
 
@@ -2353,19 +2351,14 @@ class ControlMain(QtWidgets.QMainWindow):
         # Parameter Collection Column 3, Labels
         paramSubspace.addWidget(detDistLabel,0,2, alignment=QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(colResoLabel,1,2, alignment=QtCore.Qt.AlignLeft)
-        #paramSubspace.addWidget(detDistSPLabel,1,2, alignment=QtCore.Qt.AlignLeft)
-        #hBoxColParams7.addWidget(colResoLabel)
         paramSubspace.addWidget(colEnergyLabel,2,2, alignment=QtCore.Qt.AlignLeft)
-        #paramSubspace.addWidget(energySPLabel,3,2, alignment=QtCore.Qt.AlignLeft)
         colTransmissionLabel.setAlignment(QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(colTransmissionLabel,3,2, alignment=QtCore.Qt.AlignLeft)
         transmisionSPLabel.setAlignment(QtCore.Qt.AlignLeft)
-        #paramSubspace.addWidget(transmisionSPLabel,3,2, alignment=QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(beamsizeLabel,4,2, alignment=QtCore.Qt.AlignLeft)
         # Parameter Collection Column 4, Input Boxes
         paramSubspace.addWidget(self.detDistMotorEntry.getEntry(),0,3, alignment=QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(self.resolution_ledit,1,3, alignment=QtCore.Qt.AlignLeft)
-        #hBoxColParams7.addWidget(self.resolution_ledit)
         paramSubspace.addWidget(self.energy_ledit,2,3, alignment=QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(self.transmission_ledit,3,3, alignment=QtCore.Qt.AlignLeft)
         paramSubspace.addWidget(self.beamsizeComboBox,4,3, alignment=QtCore.Qt.AlignLeft)
@@ -2384,10 +2377,7 @@ class ControlMain(QtWidgets.QMainWindow):
         improvedParamSpacing.addWidget(self.vectorParamsFrame)
         improvedParamSpacing.addWidget(self.characterizeParamsFrame)
         improvedParamSpacing.addWidget(self.processingOptionsFrame)
-        mikesGB.setLayout(improvedParamSpacing)
-        #########################
-        # End Construction Zone #
-        #########################
+        acquisitionGB.setLayout(improvedParamSpacing)
         self.rasterParamsFrame.hide()
         self.multiColParamsFrame.hide()
         self.characterizeParamsFrame.hide()
@@ -2398,7 +2388,7 @@ class ControlMain(QtWidgets.QMainWindow):
         self.albulaDispCheckBox.setChecked(False)
         hBoxDisplayOptionLayout.addWidget(self.albulaDispCheckBox)
         #vBoxMainColLayout.addWidget(colParamsGB)
-        vBoxMainColLayout.addWidget(mikesGB)
+        vBoxMainColLayout.addWidget(acquisitionGB)
         vBoxMainColLayout.addWidget(self.dataPathGB)
         self.mainColFrame.setLayout(vBoxMainColLayout)
         self.mainToolBox.addItem(self.mainColFrame,"Collection Parameters")        
