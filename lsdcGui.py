@@ -2103,11 +2103,13 @@ class ControlMain(QtWidgets.QMainWindow):
         colBeamWLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.beamWidth_ledit = QtWidgets.QLineEdit()
         self.beamWidth_ledit.setFixedWidth(60)
+        self.beamWidth_ledit.setText(getBlConfig("screen_default_beamWidth"))
         colBeamHLabel = QtWidgets.QLabel('Beam Height:')
         colBeamHLabel.setFixedWidth(140)
         colBeamHLabel.setAlignment(QtCore.Qt.AlignCenter) 
         self.beamHeight_ledit = QtWidgets.QLineEdit()
         self.beamHeight_ledit.setFixedWidth(60)
+        self.beamHeight_ledit.setText(getBlConfig("screen_default_beamHeight"))
         hBoxColParams4.addWidget(colBeamWLabel)
         hBoxColParams4.addWidget(self.beamWidth_ledit)
         hBoxColParams4.addWidget(colBeamHLabel)
@@ -2169,7 +2171,10 @@ class ControlMain(QtWidgets.QMainWindow):
         self.protoOtherRadio = QtWidgets.QRadioButton("other")
         self.protoOtherRadio.setEnabled(False)
         self.protoRadioGroup.addButton(self.protoOtherRadio)
-        protoOptionList = ["standard","raster","vector","burn","rasterScreen","stepRaster","stepVector","multiCol","characterize","ednaCol"] # these should probably come from db
+        if daq_utils.beamline =="nyx":
+            protoOptionList = ["standard","raster","vector"] # these should probably come from db
+        else: 
+            protoOptionList = ["standard","raster","vector","burn","rasterScreen","stepRaster","stepVector","multiCol","characterize","ednaCol"] # these should probably come from db
         self.protoComboBox = QtWidgets.QComboBox(self)
         self.protoComboBox.addItems(protoOptionList)
         self.protoComboBox.activated[str].connect(self.protoComboActivatedCB) 
