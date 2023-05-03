@@ -2344,7 +2344,7 @@ class ControlMain(QtWidgets.QMainWindow):
         # Area Under Construction #
         ###########################
         mikesGB = QtWidgets.QGroupBox()
-        mikesGB.setTitle("Properly Spaced Acquisition")
+        mikesGB.setTitle("Acquisition")
        
         paramSubspace = QGridLayout()
 
