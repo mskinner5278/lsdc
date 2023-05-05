@@ -4368,22 +4368,22 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def screenXPixels2microns(self,pixels):
       fov = self.getCurrentFOV()
-      fovX = fov["x"]
+      fovX = fov["x"]*1000
       return float(pixels)*(fovX/daq_utils.screenPixX)
 
     def screenYPixels2microns(self,pixels):
       fov = self.getCurrentFOV()
-      fovY = fov["y"]
+      fovY = fov["y"]*1000
       return float(pixels)*(fovY/daq_utils.screenPixY)
 
     def screenXmicrons2pixels(self,microns):
       fov = self.getCurrentFOV()
-      fovX = fov["x"]
+      fovX = fov["x"]*1000
       return int(round(microns*(daq_utils.screenPixX/fovX)))
 
     def screenYmicrons2pixels(self,microns):
       fov = self.getCurrentFOV()
-      fovY = fov["y"]
+      fovY = fov["y"]*1000
       return int(round(microns*(daq_utils.screenPixY/fovY)))
 
 
@@ -4392,6 +4392,7 @@ class ControlMain(QtWidgets.QMainWindow):
 #raster status - 0=nothing done, 1=run, 2=displayed
       stepTime = float(self.exp_time_ledit.text())
       stepsize =float(self.rasterStepEdit.text())
+      print(f'definePolyRaster: w/h: {raster_w}/{raster_h}  ; stepPixX/stepPixY:  {stepsizeXPix}/{stepsizeYPix}')
       if ((stepsize/1000.0)/stepTime > 2.0):
         self.popupServerMessage("Stage speed exceeded. Increase exposure time, or decrease step size. Limit is 2mm/s.")
         self.eraseCB()        
@@ -4408,6 +4409,7 @@ class ControlMain(QtWidgets.QMainWindow):
         rasterDef = {"rasterType":"normal","beamWidth":beamWidth,"beamHeight":beamHeight,"status":RasterStatus.NEW.value,"x":self.sampx_pv.get()+self.sampFineX_pv.get(),"y":self.sampy_pv.get()+self.sampFineY_pv.get(),"z":self.sampz_pv.get()+self.sampFineZ_pv.get(),"omega":self.omega_pv.get(),"stepsize":stepsize,"rowDefs":[]} #just storing step as microns, not using her
       else:
         rasterDef = {"rasterType":"normal","beamWidth":beamWidth,"beamHeight":beamHeight,"status":RasterStatus.NEW.value,"x":self.sampx_pv.get(),"y":self.sampy_pv.get(),"z":self.sampz_pv.get(),"omega":self.omega_pv.get(),"stepsize":stepsize,"rowDefs":[]} #just storing step as microns, not using here      
+
       numsteps_h = int(raster_w/stepsizeXPix) #raster_w = width,goes to numsteps horizonatl
       numsteps_v = int(raster_h/stepsizeYPix)
       if (numsteps_h == 2):
@@ -4456,7 +4458,7 @@ class ControlMain(QtWidgets.QMainWindow):
       setBlConfig("rasterDefaultWidth",float(self.osc_range_ledit.text()))
       setBlConfig("rasterDefaultTime",float(self.exp_time_ledit.text()))
       setBlConfig("rasterDefaultTrans",float(self.transmission_ledit.text()))
-      
+      print(f'rasterDef: {rasterDef}')
       self.addSampleRequestCB(rasterDef)
       return #short circuit
 

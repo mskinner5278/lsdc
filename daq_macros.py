@@ -28,7 +28,6 @@ from collections import OrderedDict
 from threading import Thread
 from config_params import *
 from kafka_producer import send_kafka_message
-
 import gov_lib
 
 from scans import (zebra_daq_prep, setup_zebra_vector_scan,
@@ -37,6 +36,8 @@ from scans import (zebra_daq_prep, setup_zebra_vector_scan,
 import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 from bluesky.preprocessors import finalize_wrapper
+from bluesky.log import config_bluesky_logging
+config_bluesky_logging(level='DEBUG')
 from fmx_annealer import govStatusGet, govStateSet, fmxAnnealer, amxAnnealer # for using annealer specific to FMX and AMX
 
 try:
@@ -1537,7 +1538,7 @@ def snakeRasterNormal(rasterReqID,grain=""):
     if not procFlag:
       #must go to known position to account for windup dist. 
       logger.info("moving to raster start")
-      samplexyz.put(rasterStartX, rasterStartY, rasterStartZ, omega)
+      #samplexyz.put(rasterStartX, rasterStartY, rasterStartZ, omega)
       logger.info("done moving to raster start")
 
     if (procFlag):
@@ -1618,6 +1619,7 @@ def snakeRasterNormal(rasterReqID,grain=""):
   return 1
 
 def raster_positions(currentRow, stepsize, omegaRad, rasterStartX, rasterStartY, rasterStartZ, index):
+    logger.info(f"raster_positions {currentRow}, {stepsize}, start xyz: {rasterStartX}, {rasterStartY}, {rasterStartZ}")
     numsteps = int(currentRow["numsteps"])
     startX = currentRow["start"]["x"]
     endX = currentRow["end"]["x"]
@@ -1866,14 +1868,18 @@ def snakeRasterBluesky(rasterReqID, grain=""):
                        data_directory_name=data_directory_name, file_number_start=file_number_start, x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
                        num_images_per_file=numsteps)
     raster_flyer.configure_detector(file_prefix=rasterFilePrefix, data_directory_name=data_directory_name)
+    logger.info('staging detector')
     raster_flyer.detector.stage()
     procFlag = int(getBlConfig("rasterProcessFlag"))
     spotFindThreadList = []
+    #logger.info(f'starting raster for {rows} rows') 
     for row_index, row in enumerate(rows):  # since we have vectors in rastering, don't move between each row
-        xMotAbsoluteMove, xEnd, yMotAbsoluteMove, yEnd, zMotAbsoluteMove, zEnd = raster_positions(row, stepsize, omegaRad, rasterStartX, rasterStartY, rasterStartZ, row_index)
-        vector = {'x': (xMotAbsoluteMove, xEnd), 'y': (yMotAbsoluteMove, yEnd), 'z': (zMotAbsoluteMove, zEnd)}
+        zMotAbsoluteMove, zEnd, yMotAbsoluteMove, yEnd, xMotAbsoluteMove, xEnd = raster_positions(row, stepsize, omegaRad+90, rasterStartZ*1000, rasterStartY*1000, rasterStartX*1000, row_index)
+        vector = {'x': (xMotAbsoluteMove/1000, xEnd/1000), 'y': (yMotAbsoluteMove/1000, yEnd/1000), 'z': (zMotAbsoluteMove/1000, zEnd/1000)}
+        #logger.info(f'sending vector: {vector}')
         yield from zebraDaqRasterBluesky(raster_flyer, omega, numsteps, img_width_per_cell * numsteps, img_width_per_cell, exptimePerCell, rasterFilePrefix,
             data_directory_name, file_number_start, row_index, vector)
+        logger.info('waiting 0.2s')
         raster_flyer.zebra.reset.put(1)  # reset after every row to make sure it is clear for the next row
         time.sleep(0.2)  # necessary for reliable row processing - see comment in commit 6793f4
         # processing
@@ -1923,10 +1929,10 @@ def snakeRasterBluesky(rasterReqID, grain=""):
     if not procFlag:  # no, no processing. just move to raster start
       #must go to known position to account for windup dist. 
       logger.info("moving to raster start")
-      yield from bps.mv(samplexyz.x, rasterStartX)
-      yield from bps.mv(samplexyz.y, rasterStartY)
-      yield from bps.mv(samplexyz.z, rasterStartZ)
-      yield from bps.mv(samplexyz.omega, omega)
+      #yield from bps.mv(samplexyz.x, rasterStartX)
+      #yield from bps.mv(samplexyz.y, rasterStartY)
+      #yield from bps.mv(samplexyz.z, rasterStartZ)
+      #yield from bps.mv(samplexyz.omega, omega)
       logger.info("done moving to raster start")
 
     else:  # yes, do row processing
@@ -1951,10 +1957,10 @@ def snakeRasterBluesky(rasterReqID, grain=""):
         except ValueError:
           #must go to known position to account for windup dist.
           logger.info("moving to raster start")
-          yield from bps.mv(samplexyz.x, rasterStartX)
-          yield from bps.mv(samplexyz.y, rasterStartY)
-          yield from bps.mv(samplexyz.z, rasterStartZ)
-          yield from bps.mv(samplexyz.omega, omega)
+          #yield from bps.mv(samplexyz.x, rasterStartX)
+          #yield from bps.mv(samplexyz.y, rasterStartY)
+          #yield from bps.mv(samplexyz.z, rasterStartZ)
+          #yield from bps.mv(samplexyz.omega, omega)
           logger.info("done moving to raster start")
 
       """change request status so that GUI only fills heat map when
@@ -3392,7 +3398,7 @@ def zebraDaqBluesky(flyer, angle_start, num_images, scanWidth, imgWidth, exposur
 def zebraDaqRasterBluesky(flyer, angle_start, num_images, scanWidth, imgWidth, exposurePeriodPerImage, filePrefix, data_directory_name, file_number_start, row_index, vector, scanEncoder=3, changeState=True):  # TODO should be raster flyer
 
     logger.info("in Zebra Daq Raster Bluesky #1")
-    logger.info(f" with vector: {vector}")
+    #logger.info(f" with vector: {vector}")
 
     x_vec_start=vector["x"][0]
     y_vec_start=vector["y"][0]
@@ -3410,10 +3416,11 @@ def zebraDaqRasterBluesky(flyer, angle_start, num_images, scanWidth, imgWidth, e
 
     try:
       detectorDeadTime=flyer.detector.cam.dead_time.get()
+      #logger.info(f'got dead time {detectorDeadTime}')
     except AttributeError as e:
       logger.error("Vector Aborted: failed to get dead_time from detector.cam object")
       return
-
+    #logger.info("going to update parameters")
     raster_flyer.update_parameters(angle_start=angle_start, scan_width=scanWidth, img_width=imgWidth, num_images=num_images, exposure_period_per_image=exposurePeriodPerImage, \
                    num_images_per_file=num_images, \
                    x_start_um=x_vec_start, y_start_um=y_vec_start, z_start_um=z_vec_start, \
