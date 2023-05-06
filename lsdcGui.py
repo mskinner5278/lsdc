@@ -1647,7 +1647,8 @@ class RasterGroup(QtWidgets.QGraphicsItemGroup):
                       intensity = cell.data(3)
                       if (self.parent.staffScreenDialog.albulaDispCheckBox.isChecked()):
                           if (filename != "empty"):
-                              logger.debug(f"filename to display: {filename} spotcount: {spotcount} dmin: {d_min} intensity: {intensity}")
+                              logger.info(f"cell selected: {cell}")
+                              logger.info(f"filename to display: {filename} spotcount: {spotcount} dmin: {d_min} intensity: {intensity}")
                               albulaUtils.albulaDispFile(filename)
                       if not (self.parent.rasterExploreDialog.isVisible()):
                           self.parent.rasterExploreDialog.show()
@@ -2699,6 +2700,7 @@ class ControlMain(QtWidgets.QMainWindow):
         self.vidActionRasterSelectRadio = QtWidgets.QRadioButton("Raster Select")
         self.vidActionRasterSelectRadio.setChecked(False)
         self.vidActionRasterSelectRadio.toggled.connect(self.vidActionToggledCB)
+        self.vidActionRadioGroup.addButton(self.vidActionRasterSelectRadio)
         self.vidActionRasterDefRadio = QtWidgets.QRadioButton("Define Raster")
         self.vidActionRasterDefRadio.setChecked(False)
         self.vidActionRasterDefRadio.setEnabled(False)
@@ -2875,10 +2877,10 @@ class ControlMain(QtWidgets.QMainWindow):
           saveCenteringButton.setDisabled(True) 
           selectAllCenteringButton.setDisabled(True) 
           snapshotButton.setDisabled(True) 
-          self.hideRastersCheckBox.setDisabled(True) 
-          self.vidActionC2CRadio.setDisabled(True)
-          self.vidActionRasterExploreRadio.setDisabled(True)
-          self.vidActionRasterDefRadio.setDisabled(True)
+          self.hideRastersCheckBox.setEnabled(True) 
+          self.vidActionC2CRadio.setEnabled(True)
+          self.vidActionRasterExploreRadio.setEnabled(True)
+          self.vidActionRasterDefRadio.setEnabled(True)
           self.vidActionDefineCenterRadio.setDisabled(True)
 
         hutchCornerCamThread = VideoThread(parent=self, delay=HUTCH_TIMER_DELAY, url=getBlConfig('hutchCornerCamURL'))
@@ -4171,6 +4173,12 @@ class ControlMain(QtWidgets.QMainWindow):
           try:
             spotcount = int(cellResult["spot_count_no_ice"])
             cellFilename = cellResult["image"]
+            if daq_utils.beamline == 'nyx': # this sequence is to adapt the filename to re-arming the detector each row
+                logger.info(f'changing cell filename to {cellFilename[1]} % {rasterDef["rowDefs"][i]["numsteps"]}')
+                cellFilename[1] = cellFilename[1] % rasterDef["rowDefs"][i]["numsteps"]
+                if cellFilename[1] == 0:
+                    cellFilename[1] = rasterDef["rowDefs"][i]["numsteps"]
+                logger.info(f'new file name is: {cellFilename}')
             d_min =  float(cellResult["d_min"])
             if (d_min == -1):
               d_min = 50.0 #trying to handle frames with no spots
@@ -4392,7 +4400,7 @@ class ControlMain(QtWidgets.QMainWindow):
 #raster status - 0=nothing done, 1=run, 2=displayed
       stepTime = float(self.exp_time_ledit.text())
       stepsize =float(self.rasterStepEdit.text())
-      print(f'definePolyRaster: w/h: {raster_w}/{raster_h}  ; stepPixX/stepPixY:  {stepsizeXPix}/{stepsizeYPix}')
+      logger.debug(f'definePolyRaster: w/h: {raster_w}/{raster_h}  ; stepPixX/stepPixY:  {stepsizeXPix}/{stepsizeYPix}')
       if ((stepsize/1000.0)/stepTime > 2.0):
         self.popupServerMessage("Stage speed exceeded. Increase exposure time, or decrease step size. Limit is 2mm/s.")
         self.eraseCB()        
