@@ -1864,19 +1864,18 @@ def snakeRasterBluesky(rasterReqID, grain=""):
         raster_flyer.detector.cam.acquire.put(0)
         logger.warning("Detector was in the armed state prior to this attempted collection.")
         return 0
-    raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=totalImages, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
-                       data_directory_name=data_directory_name, file_number_start=file_number_start, x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
-                       num_images_per_file=numsteps)
-    raster_flyer.configure_detector(file_prefix=rasterFilePrefix, data_directory_name=data_directory_name)
-    logger.info('staging detector')
+    #raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=numsteps, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
+     #                  data_directory_name=data_directory_name, file_number_start=file_number_start, x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
+     #                  num_images_per_file=numsteps) # rasterDef['numCells']) TODO: try to get all images in one file
     raster_flyer.detector.stage()
     procFlag = int(getBlConfig("rasterProcessFlag"))
     spotFindThreadList = []
-    #logger.info(f'starting raster for {rows} rows') 
     for row_index, row in enumerate(rows):  # since we have vectors in rastering, don't move between each row
+        raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=numsteps, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
+                       data_directory_name=data_directory_name, file_number_start=file_number_start+(numsteps*row_index), x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
+                       num_images_per_file=numsteps)
         zMotAbsoluteMove, zEnd, yMotAbsoluteMove, yEnd, xMotAbsoluteMove, xEnd = raster_positions(row, stepsize, omegaRad+90, rasterStartZ*1000, rasterStartY*1000, rasterStartX*1000, row_index)
         vector = {'x': (xMotAbsoluteMove/1000, xEnd/1000), 'y': (yMotAbsoluteMove/1000, yEnd/1000), 'z': (zMotAbsoluteMove/1000, zEnd/1000)}
-        #logger.info(f'sending vector: {vector}')
         yield from zebraDaqRasterBluesky(raster_flyer, omega, numsteps, img_width_per_cell * numsteps, img_width_per_cell, exptimePerCell, rasterFilePrefix,
             data_directory_name, file_number_start, row_index, vector)
         logger.info('waiting 0.2s')
@@ -1937,6 +1936,7 @@ def snakeRasterBluesky(rasterReqID, grain=""):
 
     else:  # yes, do row processing
       if daq_lib.abort_flag != 1:
+        print("processing rows")
         [thread.join(timeout=120) for thread in spotFindThreadList]
       else:
         logger.info("raster aborted, do not wait for spotfind threads")
@@ -1989,7 +1989,7 @@ def snakeRasterBluesky(rasterReqID, grain=""):
     if not(govStatus.success) or not(govs.gov.Robot.state.get() == targetGovState):
       logger.error(f"gov status check failed, did not achieve {targetGovState}")
 
-    if (procFlag):
+    if (procFlag==3):
       """if sleep too short then black ispyb image, timing affected by speed
       of governor transition. Sleep constraint can be relaxed with gov
       transitions and concomitant GUI moved to an earlier stage."""
