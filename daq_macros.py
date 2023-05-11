@@ -704,7 +704,8 @@ def makeDozorInputFile(directory,prefix,rowIndex,rowCellCount,seqNum,rasterReqOb
         detector = "eiger2-9m"
     nx = beamline_support.getPvValFromDescriptor("detectorNx")
     ny = beamline_support.getPvValFromDescriptor("detectorNy")
-    
+    logger.info(f"nx, ny : {nx},{ny}")
+
     firstImageNumber = int(rowIndex)*int(rowCellCount) + 1
     hdf5TemplateImage = "../../{}_{}_??????.h5".format(prefix,seqNum,rowIndex)
     daqMacrosPath = os.path.dirname(__file__)
