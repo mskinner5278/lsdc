@@ -817,7 +817,7 @@ def runDozorThread(directory,
     """
     global rasterRowResultsList,processedRasterRowCount
 
-    time.sleep(0.5) #allow for file writing
+    time.sleep(1.0) #allow for file writing
      
     node = getNodeName("spot", rowIndex, 8)
 
@@ -1539,7 +1539,7 @@ def snakeRasterNormal(rasterReqID,grain=""):
     if not procFlag:
       #must go to known position to account for windup dist. 
       logger.info("moving to raster start")
-      #samplexyz.put(rasterStartX, rasterStartY, rasterStartZ, omega)
+      samplexyz.put(rasterStartX, rasterStartY, rasterStartZ, omega)
       logger.info("done moving to raster start")
 
     if (procFlag):
@@ -1698,7 +1698,7 @@ def params_from_raster_req_id(rasterReqID):
     
 def reprocessRaster(rasterReqID):
   global rasterRowResultsList,processedRasterRowCount
-
+  logger.info("reprocessing raster")
   rasterRequest = db_lib.getRequestByID(rasterReqID)
   reqObj = rasterRequest["request_obj"]
   data_directory_name = str(reqObj["directory"])
@@ -1865,23 +1865,26 @@ def snakeRasterBluesky(rasterReqID, grain=""):
         raster_flyer.detector.cam.acquire.put(0)
         logger.warning("Detector was in the armed state prior to this attempted collection.")
         return 0
-    #raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=numsteps, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
-     #                  data_directory_name=data_directory_name, file_number_start=file_number_start, x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
-     #                  num_images_per_file=numsteps) # rasterDef['numCells']) TODO: try to get all images in one file
-    raster_flyer.detector.stage()
+    raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=totalImages, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
+                       data_directory_name=data_directory_name, file_number_start=file_number_start, x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
+                       num_images_per_file=numsteps) # rasterDef['numCells']) TODO: try to get all images in one file
+    #raster_flyer.detector.stage()
     procFlag = int(getBlConfig("rasterProcessFlag"))
     spotFindThreadList = []
+    yield from bps.mv(samplexyz.omega, (omega-1)) # attempting to over-compensate omega movemen
     for row_index, row in enumerate(rows):  # since we have vectors in rastering, don't move between each row
-        raster_flyer.detector_arm(angle_start=omega, img_width=img_width_per_cell, total_num_images=numsteps, exposure_period_per_image=exptimePerCell, file_prefix=rasterFilePrefix,
-                       data_directory_name=data_directory_name, file_number_start=file_number_start+(numsteps*row_index), x_beam=xbeam, y_beam=ybeam, wavelength=wave, det_distance_m=detDist,
-                       num_images_per_file=numsteps)
+        logger.info(f'starting new row: {row_index}')
         zMotAbsoluteMove, zEnd, yMotAbsoluteMove, yEnd, xMotAbsoluteMove, xEnd = raster_positions(row, stepsize, omegaRad+90, rasterStartZ*1000, rasterStartY*1000, rasterStartX*1000, row_index)
         vector = {'x': (xMotAbsoluteMove/1000, xEnd/1000), 'y': (yMotAbsoluteMove/1000, yEnd/1000), 'z': (zMotAbsoluteMove/1000, zEnd/1000)}
+        yield from bps.mv(samplexyz.x, xMotAbsoluteMove/1000)
+        yield from bps.mv(samplexyz.y, yMotAbsoluteMove/1000)
+        yield from bps.mv(samplexyz.z, zMotAbsoluteMove/1000)
+        yield from bps.mv(samplexyz.omega, omega-0.05)
         yield from zebraDaqRasterBluesky(raster_flyer, omega, numsteps, img_width_per_cell * numsteps, img_width_per_cell, exptimePerCell, rasterFilePrefix,
             data_directory_name, file_number_start, row_index, vector)
-        logger.info('waiting 0.2s')
-        raster_flyer.zebra.reset.put(1)  # reset after every row to make sure it is clear for the next row
-        time.sleep(0.2)  # necessary for reliable row processing - see comment in commit 6793f4
+        #logger.info('waiting 0.2s')
+        time.sleep(0.3)  # necessary for reliable row processing - see comment in commit 6793f4
+        #raster_flyer.zebra.reset.put(1)  # reset after every row to make sure it is clear for the next row
         # processing
         if (procFlag):    
           if (daq_utils.detector_id == "EIGER-16"):
@@ -1905,6 +1908,7 @@ def snakeRasterBluesky(rasterReqID, grain=""):
     initiate transitions here allows for GUI sample/heat map image to update
     after moving to known position"""
     logger.debug(f'lastOnSample(): {lastOnSample()} autoRasterFlag: {autoRasterFlag}')
+    time.sleep(3) #waiting for detector to not lose row
     if (lastOnSample() and not autoRasterFlag):
       govStatus = gov_lib.setGovRobot(gov_robot, 'SA', wait=False)
       if govStatus.exception():
@@ -1928,11 +1932,11 @@ def snakeRasterBluesky(rasterReqID, grain=""):
     #data acquisition is finished, now processing and sample positioning
     if not procFlag:  # no, no processing. just move to raster start
       #must go to known position to account for windup dist. 
-      logger.info("moving to raster start")
-      #yield from bps.mv(samplexyz.x, rasterStartX)
-      #yield from bps.mv(samplexyz.y, rasterStartY)
-      #yield from bps.mv(samplexyz.z, rasterStartZ)
-      #yield from bps.mv(samplexyz.omega, omega)
+      logger.info(f" no processing! moving to raster start: {rasterStartX} {rasterStartY} {rasterStartZ} {omega}")
+      yield from bps.mv(samplexyz.x, rasterStartX)
+      yield from bps.mv(samplexyz.y, rasterStartY)
+      yield from bps.mv(samplexyz.z, rasterStartZ)
+      yield from bps.mv(samplexyz.omega, omega)
       logger.info("done moving to raster start")
 
     else:  # yes, do row processing
@@ -1950,18 +1954,29 @@ def snakeRasterBluesky(rasterReqID, grain=""):
           multiColThreshold  = parentReqObj["diffCutoff"]
         else:
           multiColThreshold  = reqObj["diffCutoff"]         
-        gotoMaxRaster(rasterResult,multiColThreshold=multiColThreshold) 
+        # gotoMaxRaster(rasterResult,multiColThreshold=multiColThreshold) 
+        logger.info(f"moving to raster start: {rasterStartX} {rasterStartY} {rasterStartZ} {omega}")
+        yield from bps.mv(samplexyz.x, rasterStartX)
+        yield from bps.mv(samplexyz.y, rasterStartY)
+        yield from bps.mv(samplexyz.z, rasterStartZ)
+        yield from bps.mv(samplexyz.omega, omega)
       else:
         try:
           # go to start omega for faster heat map display
-          gotoMaxRaster(rasterResult,omega=omega)
+          # gotoMaxRaster(rasterResult,omega=omega)
+          logger.info(f"moving to raster start: {rasterStartX} {rasterStartY} {rasterStartZ} {omega}")
+          yield from bps.mv(samplexyz.x, rasterStartX)
+          yield from bps.mv(samplexyz.y, rasterStartY)
+          yield from bps.mv(samplexyz.z, rasterStartZ)
+          yield from bps.mv(samplexyz.omega, omega)
         except ValueError:
           #must go to known position to account for windup dist.
+          logger.info(f"moving to raster start: {rasterStartX} {rasterStartY} {rasterStartZ} {omega}")
           logger.info("moving to raster start")
-          #yield from bps.mv(samplexyz.x, rasterStartX)
-          #yield from bps.mv(samplexyz.y, rasterStartY)
-          #yield from bps.mv(samplexyz.z, rasterStartZ)
-          #yield from bps.mv(samplexyz.omega, omega)
+          yield from bps.mv(samplexyz.x, rasterStartX)
+          yield from bps.mv(samplexyz.y, rasterStartY)
+          yield from bps.mv(samplexyz.z, rasterStartZ)
+          yield from bps.mv(samplexyz.omega, omega)
           logger.info("done moving to raster start")
 
       """change request status so that GUI only fills heat map when
@@ -1990,7 +2005,7 @@ def snakeRasterBluesky(rasterReqID, grain=""):
     if not(govStatus.success) or not(govs.gov.Robot.state.get() == targetGovState):
       logger.error(f"gov status check failed, did not achieve {targetGovState}")
 
-    if (procFlag==3):
+    if (procFlag):
       """if sleep too short then black ispyb image, timing affected by speed
       of governor transition. Sleep constraint can be relaxed with gov
       transitions and concomitant GUI moved to an earlier stage."""
@@ -2266,11 +2281,11 @@ def gotoMaxRaster(rasterResult,multiColThreshold=-1,**kwargs):
     logger.info("goto " + str(x) + " " + str(y) + " " + str(z))
 
     if 'omega' in kwargs:
-      beamline_lib.mvaDescriptor("sampleX",x,
-                                 "sampleY",y,
-                                 "sampleZ",z,
+      beamline_lib.mvaDescriptor("sampleX",x/1000,
+                                 "sampleY",y/1000,
+                                 "sampleZ",z/1000,
                                  "omega",kwargs['omega'])
-    else: beamline_lib.mvaDescriptor("sampleX",x,"sampleY",y,"sampleZ",z)
+    else: beamline_lib.mvaDescriptor("sampleX",x/1000,"sampleY",y/1000,"sampleZ",z/1000)
 
     if (autoVectorFlag): #if we found a hotspot, then look again at cellResults for coarse vector start and end
       xminColumn = [] #these are the "line rasters" of the ends of threshold points determined by the first pass on the raster results
@@ -3429,9 +3444,11 @@ def zebraDaqRasterBluesky(flyer, angle_start, num_images, scanWidth, imgWidth, e
                    file_prefix=filePrefix, data_directory_name=data_directory_name,\
                    detector_dead_time=detectorDeadTime, scan_encoder=scanEncoder, change_state=changeState,\
                    row_index=row_index, transmission=1, protocol="raster")
+    #TODO: check for zebra and detector arming here
     yield from bp.fly([raster_flyer])
+    #TODO: wait for zebra to disarm
 
-    logger.info("vector Done")
+    logger.info(f"vector Done, zebra arm status: {raster_flyer.zebra.pc.arm.output}")
     logger.info("zebraDaqRasterBluesky Done")
 
 def zebraDaq(vector_program,angle_start,scanWidth,imgWidth,exposurePeriodPerImage,filePrefix,data_directory_name,file_number_start,scanEncoder=3,changeState=True): #scan encoder 0=x, 1=y,2=z,3=omega

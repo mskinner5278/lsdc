@@ -4176,12 +4176,6 @@ class ControlMain(QtWidgets.QMainWindow):
           try:
             spotcount = int(cellResult["spot_count_no_ice"])
             cellFilename = cellResult["image"]
-            if daq_utils.beamline == 'nyx': # this sequence is to adapt the filename to re-arming the detector each row
-                logger.info(f'changing cell filename to {cellFilename[1]} % {rasterDef["rowDefs"][i]["numsteps"]}')
-                cellFilename[1] = cellFilename[1] % rasterDef["rowDefs"][i]["numsteps"]
-                if cellFilename[1] == 0:
-                    cellFilename[1] = rasterDef["rowDefs"][i]["numsteps"]
-                logger.info(f'new file name is: {cellFilename}')
             d_min =  float(cellResult["d_min"])
             if (d_min == -1):
               d_min = 50.0 #trying to handle frames with no spots
@@ -4685,7 +4679,7 @@ class ControlMain(QtWidgets.QMainWindow):
       self.progressDialog.setWindowTitle("Creating Requests")
       self.progressDialog.show()
       if getBlConfig("queueCollect") == 1: # If queue collect is ON only consider selected samples and add a request to each
-        requestAdded = False
+        samplesConsidered = set()
         for i in range(len(indexes)):
           self.progressDialog.setValue(int((i+1)*progressInc))
           item = self.dewarTree.model.itemFromIndex(indexes[i])
@@ -4693,7 +4687,11 @@ class ControlMain(QtWidgets.QMainWindow):
           itemDataType = str(item.data(33))        
           if (itemDataType == "sample"): 
             self.selectedSampleID = itemData
-          else:
+          elif itemDataType == "request":
+            selectedSampleRequest = db_lib.getRequestByID(item.data(32))
+            self.selectedSampleID = selectedSampleRequest["sample"]
+
+          if self.selectedSampleID in samplesConsidered: # If a request is already added to the sample, move on
             continue
 
           try:
@@ -4709,10 +4707,7 @@ class ControlMain(QtWidgets.QMainWindow):
             self.EScanDataPathGB.setDataPath_ledit(str(self.selectedSampleRequest["request_obj"]["directory"]))
           if (itemDataType != "container"):
             self.addSampleRequestCB(selectedSampleID=self.selectedSampleID)
-            requestAdded = True
-
-        if not requestAdded:
-          self.popupServerMessage('Request(s) not added because no sample was selected and queue collect is on. Please select sample(s) you wish to add the request to')
+            samplesConsidered.add(self.selectedSampleID)
       else: # If queue collect is off does not matter how many requests you select only one will be added to current pin
         self.selectedSampleID = self.mountedPin_pv.get()
         self.selectedSampleRequest = daq_utils.createDefaultRequest(self.selectedSampleID)
@@ -5181,9 +5176,7 @@ class ControlMain(QtWidgets.QMainWindow):
         return
       logger.info("mount selected sample")
       self.eraseCB()
-      if 'sample' in self.selectedSampleRequest: # When GUI is started and no sample is mounted, self.selectedSampleRequest is empty
-        self.selectedSampleID = self.selectedSampleRequest['sample']
-      elif self.dewarTree.getSelectedSample(): # If sample ID is not found check the dewartree directly
+      if self.dewarTree.getSelectedSample(): # If sample ID is not found check the dewartree directly
         self.selectedSampleID = self.dewarTree.getSelectedSample()
       else: # No sample ID found, do nothing
         logger.info('No sample selected, cannot mount')
