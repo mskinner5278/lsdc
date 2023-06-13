@@ -29,6 +29,8 @@ from threading import Thread
 from config_params import *
 from kafka_producer import send_kafka_message
 import gov_lib
+import urllib.request
+import io
 
 from scans import (zebra_daq_prep, setup_zebra_vector_scan,
                    setup_zebra_vector_scan_for_raster,
@@ -37,7 +39,7 @@ import bluesky.plan_stubs as bps
 import bluesky.plans as bp
 from bluesky.preprocessors import finalize_wrapper
 from bluesky.log import config_bluesky_logging
-config_bluesky_logging(level='DEBUG')
+config_bluesky_logging(level='INFO')
 from fmx_annealer import govStatusGet, govStateSet, fmxAnnealer, amxAnnealer # for using annealer specific to FMX and AMX
 
 try:
@@ -217,7 +219,7 @@ def changeImageCenterHighMag(x,y,czoom):
 def autoRasterLoop(currentRequest):
   global autoRasterFlag
 
-  
+  logger.info('in autoRasterLoop') 
   gov_status = gov_lib.setGovRobot(gov_robot, 'SA')
   if not gov_status.success:
     return 0
@@ -3221,13 +3223,20 @@ def clean_up_files(pic_prefix, output_file):
       logger.error(f'Exception while removing file {filename}: {e}')
 
 def loop_center_xrec():
+  print('in daq_macros.loop_center_xrec')
   global face_on
 
   daq_lib.abort_flag = 0    
   pic_prefix = "findloop"
   output_file = 'xrec_result.txt'
+  print('clean up files')
   clean_up_files(pic_prefix, output_file)
-  zebraCamDaq(0,360,40,.4,pic_prefix,os.getcwd(),0)    
+  #if daq_utils.beamline=='nyx':
+  print('post clean')
+  xrec_no_zebra(0)
+  print('post no zebra')
+  #else:
+  #  zebraCamDaq(0,360,40,.4,pic_prefix,os.getcwd(),0)    
   comm_s = f'xrec {os.environ["CONFIGDIR"]}/xrec_360_40Fast.txt {output_file}'
   logger.info(comm_s)
   try:
@@ -3281,6 +3290,36 @@ def loop_center_xrec():
   return 1
 
   
+def xrec_no_zebra(angle_start):
+  print(f'xrec_no_zebra{angle_start}')
+  beamline_lib.mvaDescriptor("omega", angle_start)
+  #yield from bps.mv(samplexyz.omega, angle_start)
+  for omega_target in range (angle_start, angle_start+360, 40):
+    #yield from bps.mv(samplexyz.omega, omega_target)
+    beamline_lib.mvaDescriptor("omega", omega_target)
+    logger.info(f'taking image at {omega_target}')
+    timeout = 5
+    # change image mode to single(0)
+    beamline_support.setPvValFromDescriptor("lowMagImMode",0)
+    # start camera
+    beamline_support.setPvValFromDescriptor("lowMagAcquire",1)
+    try:
+      with urllib.request.urlopen(daq_utils.lowMagCamURL, timeout=timeout) as response:
+        logger.info("xnz: read")
+        image_data = response.read()
+        logger.info("xnz: read")
+      with open("findloop_"+str(omega_target/40)+".jpg", "wb") as filename:
+        logger.info("xnz: write file")
+        filename.write(image_data)
+        logger.info("xnz: write file")
+    except urllib.error.URLError as e:
+      print("Error:", e)
+    logger.info("xnz: sleep")
+    time.sleep(1)
+    # change image mode to continuous(2)
+    beamline_support.setPvValFromDescriptor("lowMagImMode",2)
+    # start camera
+    beamline_support.setPvValFromDescriptor("lowMagAcquire",1)
 
 def zebraCamDaq(angle_start,scanWidth,imgWidth,exposurePeriodPerImage,filePrefix,data_directory_name,file_number_start,scanEncoder=3): #scan encoder 0=x, 1=y,2=z,3=omega
 #careful - there's total exposure time, exposure period, exposure time

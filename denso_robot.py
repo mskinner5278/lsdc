@@ -14,8 +14,10 @@ class OphydRobot:
         self.robot = robot
 
     def parkRobot(self):
+        print("park robot, entering ophyd")
         try:
             self.robot.parkRobot()
+            #yield from self.robot.parkRobot()
         except Exception as e:
             logger.error(f'Failed to park robot: {e}')
 
