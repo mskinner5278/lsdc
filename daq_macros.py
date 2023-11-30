@@ -1034,7 +1034,7 @@ def snakeRaster(rasterReqID,grain=""):
       yield from raster_plan_wrapped(rasterReqID)
     else:
       finalize_plan = finalize_wrapper(snakeRasterBluesky(rasterReqID,grain), bps.mv(raster_flyer.detector.cam.acquire, 0))
-    yield from finalize_plan
+      yield from finalize_plan
     #RE(snakeRasterBluesky(rasterReqID,grain))
 
 def snakeRasterNoTile(rasterReqID,grain=""):
@@ -3559,7 +3559,7 @@ def rasterDaq(rasterReqID):
     #    yield from bps.mv(samplexyz.x, xMotAbsoluteMove/1000, samplexyz.y, yMotAbsoluteMove/1000, samplexyz.z, zMotAbsoluteMove/1000, samplexyz.omega, omega-0.05)
     stepsize /= 1000 # MD2 wants mm
     line_range = stepsize * numsteps
-    total_uturn_range = line_range * number_of_lines
+    total_uturn_range = stepsize * number_of_lines
     start_cx = md2.cx.val()
     start_cy = md2.cy.val()
     frames_per_line = numsteps
@@ -3568,6 +3568,7 @@ def rasterDaq(rasterReqID):
     use_centring_table = True
     use_fast_mesh_scans = True
     omega_range = 0
+    logger.info(f"TASK INFO: {md2.task_info.get()}")
     logger.info(f"omega_range = {omegaRad}")
     logger.info(f"line_range = {line_range}")
     logger.info(f"total_uturn_range = {total_uturn_range}")
