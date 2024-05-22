@@ -43,7 +43,7 @@ def pybass_init():
   if getBlConfig(config_params.DETECTOR_OBJECT_TYPE) != config_params.DETECTOR_OBJECT_TYPE_NO_INIT:
     det_lib.init_detector()  
   daq_lib.message_string_pv = beamline_support.pvCreate(daq_utils.beamlineComm + "message_string")    
-  daq_lib.error_status_pv = beamline_support.pvCreate(daq_utils.beamlineComm + "error_status_pv")
+  daq_lib.error_status_pv = beamline_support.pvCreate(daq_utils.beamlineComm + "errorStatusString")
   daq_lib.gui_popup_message_string_pv = beamline_support.pvCreate(daq_utils.beamlineComm + "gui_popup_message_string")    
   beamline_lib.read_db()
   logger.info("init mots")
@@ -110,7 +110,7 @@ def process_commands(frequency):
         process_input(command)
       except Exception as e:
         logger.error('Error processing command: %s' % e)
-        daq_lib.error_status_pv.put("error_status_pv")
+        daq_lib.error_status_pv.put("Server encountered error: %s" % e)
         raise e
     
 def print_status_thread(frequency):

@@ -200,7 +200,7 @@ class ControlMain(QtWidgets.QMainWindow):
 
         self.beamSize_pv = PV(daq_utils.beamlineComm + "size_mode")
         self.energy_pv = PV(daq_utils.motor_dict["energy"] + ".RBV")
-        self.error_status_pv = PV("error_status_pv")
+        self.error_status_pv = PV("XF:19ID2-ES:NYX{Comm}errorStatusString")
         self.rasterStepDefs = {"Coarse": 30.0, "Fine": 20.0, "VFine": 10.0}
         self.createSampleTab()
 
