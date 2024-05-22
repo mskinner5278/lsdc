@@ -200,6 +200,7 @@ class ControlMain(QtWidgets.QMainWindow):
 
         self.beamSize_pv = PV(daq_utils.beamlineComm + "size_mode")
         self.energy_pv = PV(daq_utils.motor_dict["energy"] + ".RBV")
+        self.error_status_pv = PV("error_status_pv")
         self.rasterStepDefs = {"Coarse": 30.0, "Fine": 20.0, "VFine": 10.0}
         self.createSampleTab()
 
@@ -5185,6 +5186,10 @@ class ControlMain(QtWidgets.QMainWindow):
         ID = kw["ID"]
         self.lowMagCursorChangeSignal.emit(posRBV, ID)
 
+    def errorStatusChangedCB(self, value=None, char_value=None, **kw):
+        message = str(value)
+        QtWidgets.QMessageBox.information(self, "Error Status", message)
+
     def treeChangedCB(self, value=None, char_value=None, **kw):
         if self.processID != self.treeChanged_pv.get():
             self.refreshTreeSignal.emit()
@@ -5366,7 +5371,7 @@ class ControlMain(QtWidgets.QMainWindow):
     def initCallbacks(self):
         self.beamSizeSignal.connect(self.processBeamSize)
         self.beamSize_pv.add_callback(self.beamSizeChangedCB)
-
+        self.error_status_pv.add_callback(self.errorStatusChangedCB)
         self.treeChanged_pv = PV(daq_utils.beamlineComm + "live_q_change_flag")
         self.refreshTreeSignal.connect(self.dewarTree.refreshTree)
         self.treeChanged_pv.add_callback(self.treeChangedCB)
