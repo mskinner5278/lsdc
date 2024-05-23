@@ -222,8 +222,6 @@ class ControlMain(QtWidgets.QMainWindow):
                 "fineZ": self.sampFineZ_pv.get(),
             }
         self.staffScreenDialog = StaffScreenDialog(self, show=False)
-        if daq_utils.beamline == "nyx":  # requires staffScreenDialog to be present
-            self.staffScreenDialog.fastDPCheckBox.setDisabled(True)
 
         self.dewarTree.refreshTreeDewarView()
         if self.mountedPin_pv.get() == "":
