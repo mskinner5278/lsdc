@@ -824,7 +824,7 @@ def runDozorThread(directory,
     time.sleep(0.1) #allow for file writing
      
     #node = getNodeName("spot", rowIndex, 8)
-    node = "titania-cpu00"+str((rowIndex%2)+1)
+    node = RASTER_DOZOR_PREFIX + str((rowIndex%RASTER_DOZOR_NODE_COUNT)+1).zfill(3)
     logger.info(f"distributing row {rowIndex} to {node}")
 
     if (seqNum>-1): #eiger
