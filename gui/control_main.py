@@ -2068,7 +2068,11 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def processSampMove(self, posRBV, motID):
         #      print "new " + motID + " pos=" + str(posRBV)
-        self.motPos[motID] = posRBV
+        print(f"process samp move:   {posRBV}, {motID}")
+        if not (daq_utils.exporter_enabled):
+            self.motPos[motID] = posRBV
+        else:
+            posRBV*=1000
         if self.centeringMarksList:
             for mark in self.centeringMarksList:
                 if mark is None:
@@ -3471,7 +3475,6 @@ class ControlMain(QtWidgets.QMainWindow):
         pixels_per_mm = 1 / self.camera.scale_x.get()
         pixels_per_micron = pixels_per_mm / 1000.0
         return float(pixels * img_scale_factor) / pixels_per_micron
-        print(f"pixels per micron = {pixels_per_micron}")
 
     def screenYPixels2microns(self, pixels):
         pixels_per_mm = 1 / self.camera.scale_y.get()
@@ -3549,6 +3552,8 @@ class ControlMain(QtWidgets.QMainWindow):
                 "x": self.gon.x.val(),
                 "y": self.gon.y.val(),
                 "z": self.gon.z.val(),
+                "cx": self.gon.cx.val(),
+                "cy": self.gon.cy.val(),
                 "omega": self.gon.omega.val(),
                 "stepsize": stepsize,
                 "rowDefs": [],
@@ -4921,9 +4926,17 @@ class ControlMain(QtWidgets.QMainWindow):
                 == self.mountedPin_pv.get()
             ):  # And the sample of the selected request is mounted
                 logger.info("attempting to move to raster start")
-                self.processSampMove(self.gon.x.val(), "x")
-                self.processSampMove(self.gon.y.val(), "y")
-                self.processSampMove(self.gon.z.val(), "z")
+                self.md2.ready_status().wait()
+                self.gon.cx.move(selectedSampleRequest["request_obj"]["rasterDef"]["cx"])
+                self.gon.cy.move(selectedSampleRequest["request_obj"]["rasterDef"]["cy"])
+                logger.info(f"{selectedSampleRequest['request_obj']['rasterDef']['cx']} cx")
+                logger.info(f"{selectedSampleRequest['request_obj']['rasterDef']['y']} y")
+                logger.info(f"{selectedSampleRequest['request_obj']['rasterDef']['z']} z")
+                self.gon.y.move(selectedSampleRequest["request_obj"]["rasterDef"]["y"])
+                self.gon.z.move(selectedSampleRequest["request_obj"]["rasterDef"]["z"])
+                #self.processSampMove(self.gon.x.val(), "x")
+                #self.processSampMove(self.gon.y.val(), "y")
+                #self.processSampMove(self.gon.z.val(), "z")
                 if (
                     abs(
                         selectedSampleRequest["request_obj"]["rasterDef"]["omega"]
@@ -5012,8 +5025,8 @@ class ControlMain(QtWidgets.QMainWindow):
                     itemData, createVisit=False
                 )
                 self.refreshCollectionParams(self.selectedSampleRequest)
-                if self.stillModeStatePV.get():
-                    self.setGuiValues({"osc_range": "0.0"})
+                #if self.stillModeStatePV.get():
+                #    self.setGuiValues({"osc_range": "0.0"})
                 reqObj = self.selectedSampleRequest["request_obj"]
                 self.dataPathGB.setFilePrefix_ledit(str(reqObj["file_prefix"]))
                 self.dataPathGB.setBasePath_ledit(reqObj["basePath"])
