@@ -2491,7 +2491,7 @@ class ControlMain(QtWidgets.QMainWindow):
         try:
             if float(str(self.osc_range_ledit.text())) == 0:
                 if text == "oscRange":
-                    if self.controlEnabled():
+                    if self.controlEnabled() and daq_utils.beamline != "nyx":
                         self.stillMode_pv.put(1)
                 self.colEndLabel.setText("Number of Images: ")
                 if (
@@ -2514,7 +2514,7 @@ class ControlMain(QtWidgets.QMainWindow):
                 return
             else:
                 if text == "oscRange":
-                    if self.controlEnabled():
+                    if self.controlEnabled() and daq_utils.beamline != "nyx":
                         self.standardMode_pv.put(1)
                 self.colEndLabel.setText("Oscillation Range:")
         except ValueError:
