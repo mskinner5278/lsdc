@@ -821,10 +821,10 @@ def runDozorThread(directory,
     """
     global rasterRowResultsList,processedRasterRowCount
 
-    time.sleep(10.0) #allow for file writing
+    time.sleep(0.1) #allow for file writing
      
     #node = getNodeName("spot", rowIndex, 8)
-    node = "titania-cpu00"+str((rowIndex%4)+1)
+    node = "titania-cpu00"+str((rowIndex%2)+1)
     logger.info(f"distributing row {rowIndex} to {node}")
 
     if (seqNum>-1): #eiger
@@ -3688,7 +3688,7 @@ def rasterDaq(rasterReqID):
     rasterFilePrefix = rasterFilePrefix.split("/")[-1]
     logger.info(f"raster prefix {rasterFilePrefix}")
     for i in range(0, number_of_lines):
-        time.sleep(1.0)
+        time.sleep(0.1)
         row_index = i
         logger.info(f'spot finding for row {i}')
         seqNum = raster_flyer.detector.cam.sequence_id.get()
