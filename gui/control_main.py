@@ -4628,7 +4628,7 @@ class ControlMain(QtWidgets.QMainWindow):
         if pointName == "full_vector":
             self.vector_widget.set_vector(
                 scene=self.scene,
-                gonio_coords=gonio_coords,
+                gonio_coords=gonioCoords,
                 center=(center_x, center_y),
                 length=int(self.vector_length_ledit.text())
             )
@@ -4636,7 +4636,7 @@ class ControlMain(QtWidgets.QMainWindow):
             self.vector_widget.set_vector_point(
                 point_name=pointName,
                 scene=self.scene,
-                gonio_coords=gonio_coords,
+                gonio_coords=gonioCoords,
                 center=(center_x, center_y),
             )
         self.processSampMove(self.sampx_pv.get(), "x")
