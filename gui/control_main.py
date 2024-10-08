@@ -3892,12 +3892,14 @@ class ControlMain(QtWidgets.QMainWindow):
         For three click centering, this if statement checks the omega state of the motor.
         This ideally gives feedback on wether the MD2 is in the rotation portion of the three click centering
         
-        '''
+        
         state = self.md2.exporter.read('OmegaState')
         if state != 'Ready':
             logger.info('waiting for motor rotation')
             logger.info('Click not registered')
             return
+
+        '''
         if self.vidActionDefineCenterRadio.isChecked():
             self.vidActionC2CRadio.setChecked(
                 True
@@ -3968,7 +3970,8 @@ class ControlMain(QtWidgets.QMainWindow):
         Three click centering will update self.threeClickSignal.emit(self.threeClickCount)
         
         '''
-        if self.threeClickCount > 0:  # 3-click centering
+        md2_value = self.md2.task_info.get()
+        if md2_value[0] == 'Manual Centring' and md2_value[3] == 'null':  # 3-click centering
             self.threeClickCount = self.threeClickCount + 1
             self.threeClickSignal.emit('{} more clicks'.format(str(4-self.threeClickCount)))
             #adding drawing for three click centering
@@ -4007,7 +4010,7 @@ class ControlMain(QtWidgets.QMainWindow):
             comm_s = f'center_on_click({correctedC2C_x},{correctedC2C_y},{fov["x"]},{fov["y"]},source="screen",maglevel=0,viewangle={current_viewangle})'
         if not self.vidActionRasterExploreRadio.isChecked():
             self.aux_send_to_server(comm_s)
-        if self.threeClickCount == 4:
+        if md2_value[0] == 'Manual Centring' and md2_value[3] != 'null' and self.threeClickCount != 0:
             self.threeClickCount = 0
             self.threeClickSignal.emit('0')
             self.click3Button.setStyleSheet("background-color: None")
