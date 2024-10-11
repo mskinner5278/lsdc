@@ -105,29 +105,37 @@ class RedisVideoThread(VideoThread):
 
     def camera_refresh(self):
         pixmap_orig = QtGui.QPixmap(320, 180)
-        message = self.pubsub.get_message()
-        if message and message['type'] == 'message':
-            try:
-                img_data = message['data'][24:] # BytesIO(message['data'].encode('latin1'))
-                img = Image.open(img_data)
-                qimage = ImageQt.ImageQt(img)
-                pixmap_orig = QtGui.QPixmap.fromImage(qimage)
-                # TODO: resize frame here 
-                self.showing_error = False
-            except Exception as e:
-                if not self.showing_error:
-                    painter = QtGui.QPainter(pixmap_orig)
-                    painter.setPen(QtGui.QPen(Qt.white))
-                    painter.drawText(QPoint(10, 10), "No image obtained from Redis stream")
-                    painter.end()
-                    self.frame_ready.emit(pixmap_orig)
-                    self.showing_error = True
+        try:
+            message = self.pubsub.get_message()
+        except Exception as e:
+            logger.info("redis video thread error")
+
+    def redis_onMessage(self,rimg):
+        if 'subscribe' in rimg['type']:
+            return
+        #produce bitmap
+        #update image
+        logger.info("produce bitmap here")
+        try:
+            img_data = message['data'][24:] # BytesIO(message['data'].encode('latin1'))
+            img = Image.open(img_data)
+            qimage = ImageQt.ImageQt(img)
+            pixmap_orig = QtGui.QPixmap.fromImage(qimage)
+            # TODO: resize frame here 
+            self.showing_error = False
+        except Exception as e:
+            if not self.showing_error:
+                painter = QtGui.QPainter(pixmap_orig)
+                painter.setPen(QtGui.QPen(Qt.white))
+                painter.drawText(QPoint(10, 10), "No image obtained from Redis stream")
+                painter.end()
+                self.frame_ready.emit(pixmap_orig)
+                self.showing_error = True
 
         if not self.showing_error:
             self.frame_ready.emit(pixmap_orig)
-        
-    def updateCam(self, url):
-        self.redis_client.publish(self.redis_channel, url)
+    #def updateCam(self, url):
+        #self.redis_client.publish(self.redis_channel, url)
 
 class RaddoseThread(QThread):
     lifetime = Signal(float)
