@@ -6,6 +6,7 @@ import os
 import sys
 import urllib
 from io import BytesIO
+import redis
 import logging
 from config_params import SERVER_CHECK_DELAY
 import raddoseLib
