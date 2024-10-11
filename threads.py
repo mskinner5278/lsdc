@@ -5,6 +5,7 @@ import cv2
 import os
 import sys
 import urllib
+import struct
 from io import BytesIO
 import redis
 import logging
@@ -94,36 +95,48 @@ class VideoThread(QThread):
         self.wait()
 
 class RedisVideoThread(VideoThread):
+    frame_ready = Signal(object)
     def __init__(self, *args, host='localhost', port=6379, redis_channel='bzoom:RAW', **kwargs):
         super().__init__(*args, **kwargs)
         self.host = host
         self.port = port
         self.redis_channel = redis_channel
-        self.redis_client = redis.StrictRedis(host=self.host, port=self.port, decode_responses=True)
+        self.redis_client = redis.Redis(host=self.host, port=self.port, decode_responses=False)
         self.pubsub = self.redis_client.pubsub()
-        self.pubsub.subscribe(self.redis_channel)
+        redis_args = {}
+        redis_args[redis_channel]=self.redis_onMessage
+        logger.info(f"host: {host} | port: {port} | rch: {redis_channel} | args: {redis_args}")
+        self.pubsub.subscribe(**redis_args)
+        self.image_struct = struct.Struct('<HiiHHqH')
 
     def camera_refresh(self):
-        pixmap_orig = QtGui.QPixmap(320, 180)
         try:
             message = self.pubsub.get_message()
         except Exception as e:
-            logger.info("redis video thread error")
+            logger.info(f"redis video thread error {e}")
 
     def redis_onMessage(self,rimg):
+        pixmap_orig = QtGui.QPixmap(1224,1024)
         if 'subscribe' in rimg['type']:
+            logger.info("subscribe")
             return
         #produce bitmap
         #update image
         logger.info("produce bitmap here")
         try:
-            img_data = message['data'][24:] # BytesIO(message['data'].encode('latin1'))
-            img = Image.open(img_data)
-            qimage = ImageQt.ImageQt(img)
+            #img_data = rimg['data'][24:] # BytesIO(message['data'].encode('latin1'))
+            #img = Image.open(rimg)
+            #qimage = ImageQt.ImageQt(img)
+            a,w,h,b,c,n,d = self.image_struct.unpack(rimg['data'][:24])
+            logger.info(f'{a}, {w}, {h}, {b}, {c}, {n}, {d}, {len(rimg["data"])}')
+            raw = rimg['data'][24:]
+            qimage = QtGui.QImage.fromData(raw)
             pixmap_orig = QtGui.QPixmap.fromImage(qimage)
+            logger.info(f'{pixmap_orig.isNull()}')
             # TODO: resize frame here 
             self.showing_error = False
         except Exception as e:
+            logger.info(f"error is {e}")
             if not self.showing_error:
                 painter = QtGui.QPainter(pixmap_orig)
                 painter.setPen(QtGui.QPen(Qt.white))
@@ -133,6 +146,7 @@ class RedisVideoThread(VideoThread):
                 self.showing_error = True
 
         if not self.showing_error:
+            logger.info('emit frame')
             self.frame_ready.emit(pixmap_orig)
     #def updateCam(self, url):
         #self.redis_client.publish(self.redis_channel, url)
