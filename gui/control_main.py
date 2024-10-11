@@ -23,7 +23,6 @@ from qtpy.QtCore import QModelIndex, QRectF, Qt, QTimer, QMutex, QMutexLocker, Q
 from qtpy.QtGui import QIntValidator
 from qtpy.QtWidgets import QCheckBox, QFrame, QGraphicsPixmapItem, QApplication, QMessageBox
 from devices import GonioDevice, CameraDevice, MD2Device, LightDevice, MD2ApertureDevice
-import albulaUtils
 import daq_utils
 if daq_utils.beamline == 'nyx':
     from mxbluesky.devices.md2 import GonioDevice, CameraDevice, MD2Device, LightDevice, MD2ApertureDevice
