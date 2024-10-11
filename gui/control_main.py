@@ -19,11 +19,11 @@ from PyMca5.PyMcaPhysics.xrf import Elements
 from qt_epics.QtEpicsPVEntry import QtEpicsPVEntry
 from qt_epics.QtEpicsPVLabel import QtEpicsPVLabel
 from qtpy import QtCore, QtGui, QtWidgets
-from qtpy.QtCore import QModelIndex, QRectF, Qt, QTimer, QMutex, QMutexLocker
+from qtpy.QtCore import QModelIndex, QRectF, Qt, QTimer, QMutex, QMutexLocker, QProcess
 from qtpy.QtGui import QIntValidator
-from qtpy.QtWidgets import QCheckBox, QFrame, QGraphicsPixmapItem, QApplication
+from qtpy.QtWidgets import QCheckBox, QFrame, QGraphicsPixmapItem, QApplication, QMessageBox
 from devices import GonioDevice, CameraDevice, MD2Device, LightDevice, MD2ApertureDevice
-
+import albulaUtils
 import daq_utils
 if daq_utils.beamline == 'nyx':
     from mxbluesky.devices.md2 import GonioDevice, CameraDevice, MD2Device, LightDevice, MD2ApertureDevice
@@ -61,7 +61,8 @@ from gui.dialog import (
     SnapCommentDialog,
     StaffScreenDialog,
     UserScreenDialog,
-    CalculatorWindow
+    CalculatorWindow,
+    ProcessPopup
 )
 from gui.raster import RasterCell, RasterGroup
 from gui.vector import VectorMarker, VectorWidget
@@ -172,6 +173,7 @@ class ControlMain(QtWidgets.QMainWindow):
         self.centerMarkerCharSize = 20
         self.centerMarkerCharOffsetX = 12
         self.centerMarkerCharOffsetY = 18
+        self.raster_output = None
         self.currentRasterCellList = []
         self.redPen = QtGui.QPen(QtCore.Qt.red)
         self.bluePen = QtGui.QPen(QtCore.Qt.blue)
@@ -270,6 +272,7 @@ class ControlMain(QtWidgets.QMainWindow):
         elif event.type() == QtCore.QEvent.KeyRelease and event.key() == QtCore.Qt.Key.Key_Shift:
             self.vector_widget.show_nodes()
         return QtWidgets.QWidget.eventFilter(self, obj, event)
+
 
 
     def setGuiValues(self, values):
@@ -1526,7 +1529,8 @@ class ControlMain(QtWidgets.QMainWindow):
             self.dimpleCheckBox.setVisible(False)
             self.centeringComboBox.setVisible(False)
             annealButton.setVisible(False)
-            centerLoopButton.setVisible(False)
+            #unhiding center loop button
+            #centerLoopButton.setVisible(False)
             clearGraphicsButton.setVisible(False)
             saveCenteringButton.setVisible(False)
             selectAllCenteringButton.setVisible(False)
@@ -1545,6 +1549,7 @@ class ControlMain(QtWidgets.QMainWindow):
         #self.captureLowMag.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.captureLowMag = daq_utils.lowMagCamURL
         self.capture = self.captureLowMag
+
         
         if daq_utils.beamline == "nyx":
             #self.sampleCameraThread = RedisVideoThread(
@@ -3023,7 +3028,61 @@ class ControlMain(QtWidgets.QMainWindow):
             self.popupServerMessage("You don't have control")
 
     def autoCenterLoopCB(self):
-        self.send_to_server("loop_center_xrec")
+        #self.send_to_server("loop_center_xrec")
+
+        logger.info("auto center loop")
+        autocenter_call = '/nsls2/data/nyx/legacy/Rudra/lsdcSpoofer/run_auto_center'
+        popup_info = ProcessPopup(parent = self, window_title='AutoCenter Info', main_text="Waiting for auto center, view detailed text for more info")
+        
+        popup_info.setIcon(QMessageBox.Information)
+        x = popup_info.open()
+        self.autocenter_process = QProcess(parent=self)
+        self.autocenter_process.readyReadStandardOutput.connect(lambda: popup_info.setDetailedText(bytes(self.autocenter_process.readAllStandardOutput()).decode("utf8")))
+        self.autocenter_process.finished.connect(lambda: popup_info.setText("AUTO CENTERING FINISHED\n\nopen details for more information"))
+        self.autocenter_process.finished.connect(lambda: popup_info.setWindowTitle("Done"))
+    
+        self.autocenter_process.start(autocenter_call)
+        
+
+
+
+        # with subprocess.Popen(autocenter_call, stdout=subprocess.PIPE, bufsize=1, universal_newlines=True) as p:
+        #     for line in p.stdout:
+                
+        #         popup_info.setText(line + "")
+
+        # if p.returncode != 0:
+        #     raise subprocess.CalledProcessError(p.returncode, p.args)
+
+
+
+    def handle_raster_output(self, data):
+        self.raster_output = data
+
+
+
+
+
+    def get_raster_coords(self):
+        logger.info("getting raster coordinates")
+        raster_call = '/nsls2/data/nyx/legacy/Rudra/lsdcSpoofer/get_raster_box'
+        self.raster_output = None
+        self.raster_process = QProcess(parent=self)
+        
+        self.raster_process.finished.connect(lambda: self.handle_raster_output(self.raster_process.readAllStandardOutput().data().decode('utf-8')))
+        #self.raster_process.finished.connect(lambda: self.raster_process.close())
+        self.raster_process.start(raster_call)
+        self.raster_process.waitForFinished()
+        return self.raster_output
+    
+
+        
+    
+
+
+
+
+
 
     def autoRasterLoopCB(self):
         self.selectedSampleID = self.selectedSampleRequest["sample"]
