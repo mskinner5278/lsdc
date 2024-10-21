@@ -1,4 +1,4 @@
-from qtpy.QtCore import QThread, QTimer, QEventLoop, Signal, QPoint, Qt, QObject
+from qtpy.QtCore import QSize, QByteArray, QThread, QTimer, QEventLoop, Signal, QPoint, Qt, QObject
 from qtpy import QtGui
 from PIL import Image, ImageQt
 import cv2
@@ -130,8 +130,13 @@ class RedisVideoThread(VideoThread):
             a,w,h,b,c,n,d = self.image_struct.unpack(rimg['data'][:24])
             logger.info(f'{a}, {w}, {h}, {b}, {c}, {n}, {d}, {len(rimg["data"])}')
             raw = rimg['data'][24:]
-            qimage = QtGui.QImage.fromData(raw)
-            pixmap_orig = QtGui.QPixmap.fromImage(qimage)
+            size = QSize(w, h)
+            logger.info(f'size is valid - {size.isValid()}')
+            bmp = QtGui.QBitmap.fromData(size, raw)
+            #byte_array = QByteArray(raw)
+            #qimage = QtGui.QImage.fromData(byte_array, "BMP")
+            #pixmap_orig = QtGui.QPixmap.fromImage(qimage)
+            #pixmap_orig = bmp#QtGui.QPixmap.fromImage(bmp)
             logger.info(f'{pixmap_orig.isNull()}')
             # TODO: resize frame here 
             self.showing_error = False
