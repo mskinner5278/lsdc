@@ -100,6 +100,7 @@ class RedisVideoThread(VideoThread):
         super().__init__(*args, **kwargs)
         self.host = host
         self.port = port
+        self.delay = 200
         self.redis_channel = redis_channel
         self.redis_client = redis.Redis(host=self.host, port=self.port, decode_responses=False)
         self.pubsub = self.redis_client.pubsub()
@@ -120,39 +121,21 @@ class RedisVideoThread(VideoThread):
         if 'subscribe' in rimg['type']:
             logger.info("subscribe")
             return
-        #produce bitmap
-        #update image
-        logger.info("produce bitmap here")
         try:
-            #img_data = rimg['data'][24:] # BytesIO(message['data'].encode('latin1'))
-            #img = Image.open(rimg)
-            #qimage = ImageQt.ImageQt(img)
+            # decode image
             a,w,h,b,c,n,d = self.image_struct.unpack(rimg['data'][:24])
             logger.info(f'{a}, {w}, {h}, {b}, {c}, {n}, {d}, {len(rimg["data"])}')
-            raw = rimg['data'][24:]
-            size = QSize(w, h)
-            logger.info(f'size is valid - {size.isValid()}')
-            bmp = QtGui.QBitmap.fromData(size, raw)
-            #byte_array = QByteArray(raw)
-            #qimage = QtGui.QImage.fromData(byte_array, "BMP")
-            #pixmap_orig = QtGui.QPixmap.fromImage(qimage)
-            #pixmap_orig = bmp#QtGui.QPixmap.fromImage(bmp)
-            logger.info(f'{pixmap_orig.isNull()}')
-            # TODO: resize frame here 
-            self.showing_error = False
-        except Exception as e:
-            logger.info(f"error is {e}")
-            if not self.showing_error:
-                painter = QtGui.QPainter(pixmap_orig)
-                painter.setPen(QtGui.QPen(Qt.white))
-                painter.drawText(QPoint(10, 10), "No image obtained from Redis stream")
-                painter.end()
+            img = Image.frombuffer("RGB", (1224, 1024), rimg['data'])
+            img = img.resize((640,512))
+            qt_img = QtGui.QImage(ImageQt.ImageQt(img))
+            pixmap_orig = QtGui.QPixmap.fromImage(qt_img)
+            if not pixmap_orig.isNull():
+                # update client image
                 self.frame_ready.emit(pixmap_orig)
-                self.showing_error = True
+        except Exception as e:
+            logger.info('dropping frame with error:  {e}')
+            return #dropping frame
 
-        if not self.showing_error:
-            logger.info('emit frame')
-            self.frame_ready.emit(pixmap_orig)
     #def updateCam(self, url):
         #self.redis_client.publish(self.redis_channel, url)
 
