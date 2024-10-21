@@ -100,7 +100,7 @@ class RedisVideoThread(VideoThread):
         super().__init__(*args, **kwargs)
         self.host = host
         self.port = port
-        self.delay = 200
+        self.delay = 1000
         self.redis_channel = redis_channel
         self.redis_client = redis.Redis(host=self.host, port=self.port, decode_responses=False)
         self.pubsub = self.redis_client.pubsub()
