@@ -13,12 +13,15 @@ from queue import Queue
 import cv2
 import numpy as np
 from epics import PV
+
+# suppresses the absurd logging from PyMca5 imports
 logging.basicConfig(level="INFO")
 mlogger = logging.getLogger("PyMca5")
 mlogger.setLevel(logging.WARNING)
 from PyMca5.PyMcaGui.physics.xrf.McaAdvancedFit import McaAdvancedFit
 from PyMca5.PyMcaGui.pymca.McaWindow import McaWindow, ScanWindow
 from PyMca5.PyMcaPhysics.xrf import Elements
+
 from qt_epics.QtEpicsPVEntry import QtEpicsPVEntry
 from qt_epics.QtEpicsPVLabel import QtEpicsPVLabel
 from qtpy import QtCore, QtGui, QtWidgets
@@ -4706,7 +4709,7 @@ class ControlMain(QtWidgets.QMainWindow):
         if pointName == "full_vector":
             self.vector_widget.set_vector(
                 scene=self.scene,
-                gonio_coords=gonio_coords,
+                gonio_coords=gonioCoords,
                 center=(center_x, center_y),
                 length=int(self.vector_length_ledit.text())
             )
@@ -4714,7 +4717,7 @@ class ControlMain(QtWidgets.QMainWindow):
             self.vector_widget.set_vector_point(
                 point_name=pointName,
                 scene=self.scene,
-                gonio_coords=gonio_coords,
+                gonio_coords=gonioCoords,
                 center=(center_x, center_y),
             )
         self.processSampMove(self.sampx_pv.get(), "x")
