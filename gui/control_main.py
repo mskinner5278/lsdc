@@ -3002,16 +3002,15 @@ class ControlMain(QtWidgets.QMainWindow):
 
     def omegaTweakNegCB(self):
         tv = float(self.omegaTweakVal_ledit.text())
-        tweakVal = 0.0 - tv
         if self.controlEnabled():
-            mv_status = self.gon.omega.move(self.gon.omega.val() + tweakVal)
+            mv_status = self.gon.omega.move(self.gon.omega.val() - tv, wait=False)
         else:
             self.popupServerMessage("You don't have control")
 
     def omegaTweakPosCB(self):
         tv = float(self.omegaTweakVal_ledit.text())
         if self.controlEnabled():
-            mv_status = self.gon.omega.move(self.gon.omega.val() + tv)
+            mv_status = self.gon.omega.move(self.gon.omega.val() + tv, wait=False)
         else:
             self.popupServerMessage("You don't have control")
 
@@ -3048,8 +3047,8 @@ class ControlMain(QtWidgets.QMainWindow):
     def omegaTweakCB(self, tv):
         tvf = float(tv)
         if self.controlEnabled():
-            status = self.gon.omega.move(self.gon.omega.val() + tvf)
-            status.wait()
+            status = self.gon.omega.move(self.gon.omega.val() + tvf, wait=False)
+            #status.wait()
         else:
             self.popupServerMessage("You don't have control")
 
